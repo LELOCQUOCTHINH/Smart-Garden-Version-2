@@ -19,7 +19,7 @@ void reconnect() {
     String clientId = "ESP32Client-";
     clientId += String(random(0xffff), HEX);
 
-    if (client.connect(clientId.c_str())) {
+    if (client.connect(clientId.c_str(), CORE_IOT_TOKEN.c_str(), NULL)) {
         
       Serial.println("connected to CoreIOT Server!");
       client.subscribe("v1/devices/me/rpc/request/+");
