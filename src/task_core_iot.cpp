@@ -47,23 +47,25 @@ void processSharedAttributes(const Shared_Attribute_Data &data)
     }
 }
 
-RPC_Response setLedSwitchValue(const RPC_Data &data)
+RPC_Response setStateLED(const RPC_Data &data)
 {
     Serial.println("Received Switch state");
     bool newState = data;
     Serial.print("Switch state change: ");
     Serial.println(newState);
-    return RPC_Response("setLedSwitchValue", newState);
+    return RPC_Response("setStateLED", newState);
 }
 
 const std::array<RPC_Callback, 1U> callbacks = {
-    RPC_Callback{"setLedSwitchValue", setLedSwitchValue}};
+    RPC_Callback{"setStateLED", setStateLED}};
 
 const Shared_Attribute_Callback attributes_callback(&processSharedAttributes, SHARED_ATTRIBUTES_LIST.cbegin(), SHARED_ATTRIBUTES_LIST.cend());
 const Attribute_Request_Callback attribute_shared_request_callback(&processSharedAttributes, SHARED_ATTRIBUTES_LIST.cbegin(), SHARED_ATTRIBUTES_LIST.cend());
 
 void CORE_IOT_sendata(String mode, String feed, String data)
 {
+    Serial.printf("🌐 [CoreIoT] Gửi %s -> [%s]: %s\n", mode.c_str(), feed.c_str(), data.c_str());
+    
     if (mode == "attribute")
     {
         tb.sendAttributeData(feed.c_str(), data);
@@ -76,6 +78,7 @@ void CORE_IOT_sendata(String mode, String feed, String data)
     else
     {
         // handle unknown mode
+        Serial.println("⚠️ [CoreIoT] Unknown mode!");
     }
 }
 
@@ -121,13 +124,24 @@ void CORE_IOT_reconnect()
 
 void iot_monitor_task(void *pvParameters)
 {
-  while (1)
-  {
-    if (WiFi.status() == WL_CONNECTED && check_info_File(1))
+    unsigned long last_iot_send = 0;
+    while (1)
     {
-      CORE_IOT_reconnect();
-    }
+        if (WiFi.status() == WL_CONNECTED && check_info_File(1))
+        {
+            CORE_IOT_reconnect();
+            if (millis() - last_iot_send >= 10000) 
+            {
+                last_iot_send = millis();
 
-    vTaskDelay(pdMS_TO_TICKS(50)); 
-  }
+                // Sử dụng hàm CORE_IOT_sendata có sẵn trong file task_core_iot.cpp
+                CORE_IOT_sendata("telemetry", "temperature", String(glob_temperature));
+                CORE_IOT_sendata("telemetry", "humidity", String(glob_humidity));
+                
+                // Serial.println("📤 Đã push Telemetry lên CoreIoT");
+            }
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(50)); 
+    }
 }

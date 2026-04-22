@@ -20,7 +20,7 @@ void setup()
   xTaskCreate(led_blinky, "Task LED Blink", 2048, NULL, 2, NULL);
   xTaskCreate(neo_blinky, "Task NEO Blink", 2048, NULL, 2, NULL);
   xTaskCreate(temp_humi_monitor, "Task TEMP HUMI Monitor", 2048, NULL, 2, NULL);
-  xTaskCreate(tiny_ml_task, "Tiny ML Task" ,2048  ,NULL  ,2 , NULL);
+  xTaskCreate(tiny_ml_task, "Tiny ML Task", 2048, NULL, 2, NULL);
   xTaskCreate(Task_Toggle_BOOT, "Task_Toggle_BOOT", 4096, NULL, 2, NULL);
   xTaskCreate(wifi_web_task, "Task WiFi Webserver", 8192, NULL, 2, NULL);
   xTaskCreate(iot_monitor_task, "Task IoT Monitor", 4096, NULL, 2, NULL);

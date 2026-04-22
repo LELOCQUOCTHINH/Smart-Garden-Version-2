@@ -10,12 +10,12 @@ void Webserver_sendata(String data)
     if (ws.count() > 0)
     {
         ws.textAll(data); // Gửi đến tất cả client đang kết nối
-        Serial.println("📤 Đã gửi dữ liệu qua WebSocket: " + data);
+        Serial.println("📤 [WebSocket] Đã gửi dữ liệu qua WebSocket: " + data);
     }
-    else
-    {
-        Serial.println("⚠️ Không có client WebSocket nào đang kết nối!");
-    }
+    // else
+    // {
+    //     Serial.println("⚠️ Không có client WebSocket nào đang kết nối!");
+    // }
 }
 
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
@@ -75,19 +75,29 @@ void Webserver_reconnect()
 
 void wifi_web_task(void *pvParameters)
 {
-  while (1)
-  {
-    if (check_info_File(1))
-    {
-      if (!Wifi_reconnect())
-      {
-        Webserver_stop(); // Nếu rớt WiFi thì tắt WebServer
-      }
-    }
-    
-    // retain web interface and OTA
-    Webserver_reconnect();
+    unsigned long last_local_send = 0;
 
-    vTaskDelay(pdMS_TO_TICKS(20)); 
-  }
+    while (1)
+    {
+        if (check_info_File(1))
+        {
+            if (!Wifi_reconnect())
+            {
+                Webserver_stop(); // Nếu rớt WiFi thì tắt WebServer
+            }
+        }
+
+        // handle web interface and OTA
+        Webserver_reconnect();
+
+        if (millis() - last_local_send >= 2000) 
+        {
+            last_local_send = millis();
+            
+            String wsData = "{\"temperature\":" + String(glob_temperature) + ",\"humidity\":" + String(glob_humidity) + "}";
+            Webserver_sendata(wsData);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(20)); 
+    }
 }

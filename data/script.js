@@ -36,10 +36,16 @@ function Send_Data(data) {
 }
 
 function onMessage(event) {
-    console.log("📩 Nhận:", event.data);
+    console.log("📩 Nhận dữ liệu từ ESP32: ", event.data);
     try {
         var data = JSON.parse(event.data);
         // Có thể thêm xử lý riêng nếu cần (ví dụ cập nhật trạng thái)
+        if (data.temperature !== undefined && gaugeTemp) {
+            gaugeTemp.refresh(data.temperature);
+        }
+        if (data.humidity !== undefined && gaugeHumi) {
+            gaugeHumi.refresh(data.humidity);
+        }
     } catch (e) {
         console.warn("Không phải JSON hợp lệ:", event.data);
     }
@@ -59,8 +65,11 @@ function showSection(id, event) {
 
 
 // ==================== HOME GAUGES ====================
+var gaugeTemp;
+var gaugeHumi;
+
 window.onload = function () {
-    const gaugeTemp = new JustGage({
+    gaugeTemp = new JustGage({
         id: "gauge_temp",
         value: 26,
         min: -10,
@@ -73,7 +82,7 @@ window.onload = function () {
         levelColors: ["#00BCD4", "#4CAF50", "#FFC107", "#F44336"]
     });
 
-    const gaugeHumi = new JustGage({
+    gaugeHumi = new JustGage({
         id: "gauge_humi",
         value: 60,
         min: 0,
@@ -86,10 +95,10 @@ window.onload = function () {
         levelColors: ["#42A5F5", "#00BCD4", "#0288D1"]
     });
 
-    setInterval(() => {
-        gaugeTemp.refresh(Math.floor(Math.random() * 15) + 20);
-        gaugeHumi.refresh(Math.floor(Math.random() * 40) + 40);
-    }, 3000);
+    // setInterval(() => {
+    //     gaugeTemp.refresh(Math.floor(Math.random() * 15) + 20);
+    //     gaugeHumi.refresh(Math.floor(Math.random() * 40) + 40);
+    // }, 3000);
 };
 
 
