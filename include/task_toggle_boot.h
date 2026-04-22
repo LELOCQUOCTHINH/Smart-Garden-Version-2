@@ -3,4 +3,4 @@
 #include "global.h"
 #include "task_check_info.h"
 
-void Task_Toogle_BOOT(void *pvParameters);
+void Task_Toggle_BOOT(void *pvParameters);

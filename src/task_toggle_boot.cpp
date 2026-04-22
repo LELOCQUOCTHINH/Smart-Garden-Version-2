@@ -1,8 +1,8 @@
-#include "task_toogle_boot.h"
+#include "task_toggle_boot.h"
 
 #define BOOT 0
 
-void Task_Toogle_BOOT(void *pvParameters)
+void Task_Toggle_BOOT(void *pvParameters)
 {
     unsigned long buttonPressStartTime = 0;
     while (true)

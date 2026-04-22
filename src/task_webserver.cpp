@@ -72,3 +72,22 @@ void Webserver_reconnect()
     }
     ElegantOTA.loop();
 }
+
+void wifi_web_task(void *pvParameters)
+{
+  while (1)
+  {
+    if (check_info_File(1))
+    {
+      if (!Wifi_reconnect())
+      {
+        Webserver_stop(); // Nếu rớt WiFi thì tắt WebServer
+      }
+    }
+    
+    // retain web interface and OTA
+    Webserver_reconnect();
+
+    vTaskDelay(pdMS_TO_TICKS(20)); 
+  }
+}

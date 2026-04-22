@@ -118,3 +118,16 @@ void CORE_IOT_reconnect()
         tb.loop();
     }
 }
+
+void iot_monitor_task(void *pvParameters)
+{
+  while (1)
+  {
+    if (WiFi.status() == WL_CONNECTED && check_info_File(1))
+    {
+      CORE_IOT_reconnect();
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(50)); 
+  }
+}
