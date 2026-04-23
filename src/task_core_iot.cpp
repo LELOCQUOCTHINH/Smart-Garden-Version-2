@@ -47,17 +47,65 @@ void processSharedAttributes(const Shared_Attribute_Data &data)
     }
 }
 
-RPC_Response setStateLED(const RPC_Data &data)
+RPC_Response getStateLED(const RPC_Data &data)
 {
-    Serial.println("Received Switch state");
-    bool newState = data;
-    Serial.print("Switch state change: ");
-    Serial.println(newState);
-    return RPC_Response("setStateLED", newState);
+    Serial.println("Received getStateLED request from Server");
+    
+    bool currentState = false;
+
+    if (xSemaphoreTake(xMutexNeoState, (TickType_t)10) == pdTRUE) 
+    {
+        // ----- (CRITICAL SECTION) -----
+        currentState = (neo_state == 1);
+        xSemaphoreGive(xMutexNeoState); 
+        // ------------------------------------------------
+    }
+    else 
+    {
+        Serial.println("⚠️ ERROR: Cannot get Mutex for Read, returning default state!");
+    }
+
+    Serial.print("Current LED state is: ");
+    Serial.println(currentState);
+
+    static StaticJsonDocument<JSON_OBJECT_SIZE(1)> doc;
+    doc.clear();
+    doc["getStateLED"] = currentState ? true : false;
+
+    return RPC_Response(doc.as<JsonVariant>());
 }
 
-const std::array<RPC_Callback, 1U> callbacks = {
-    RPC_Callback{"setStateLED", setStateLED}};
+RPC_Response setStateLED(const RPC_Data &data)
+{
+    Serial.println("Received LED state");
+    bool newState = data;
+    if (xSemaphoreTake(xMutexNeoState, (TickType_t)10) == pdTRUE) 
+    {
+        // ----- (CRITICAL SECTION) -----
+        neo_state = newState ? 1 : 0;
+        
+        // return the mutex after updating the state
+        xSemaphoreGive(xMutexNeoState); 
+        // ------------------------------------------------
+        Serial.print("LED state change: ");
+        Serial.println(newState);
+    }
+    else 
+    {
+        Serial.println("⚠️ ERROR: cannot get Mutex, skip RPC command!");
+    }
+
+    static StaticJsonDocument<JSON_OBJECT_SIZE(1)> doc;
+    doc.clear();
+    doc["setStateLED"] = neo_state ? true : false;
+
+    return RPC_Response(doc.as<JsonVariant>());
+}
+
+const std::array<RPC_Callback, 2U> callbacks = {
+    RPC_Callback{"setStateLED", setStateLED},
+    RPC_Callback{"getStateLED", getStateLED}
+};
 
 const Shared_Attribute_Callback attributes_callback(&processSharedAttributes, SHARED_ATTRIBUTES_LIST.cbegin(), SHARED_ATTRIBUTES_LIST.cend());
 const Attribute_Request_Callback attribute_shared_request_callback(&processSharedAttributes, SHARED_ATTRIBUTES_LIST.cbegin(), SHARED_ATTRIBUTES_LIST.cend());

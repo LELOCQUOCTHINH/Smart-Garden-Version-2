@@ -1,7 +1,7 @@
 #include "global.h"
 
 #include "led_blinky.h"
-#include "neo_blinky.h"
+#include "neo_control.h"
 #include "temp_humi_monitor.h"
 #include "tinyml.h"
 
@@ -18,7 +18,7 @@ void setup()
   check_info_File(0);
 
   xTaskCreate(led_blinky, "Task LED Blink", 2048, NULL, 2, NULL);
-  xTaskCreate(neo_blinky, "Task NEO Blink", 2048, NULL, 2, NULL);
+  xTaskCreate(neo_control_RPC, "Task NEO Control", 2048, NULL, 2, NULL);
   xTaskCreate(temp_humi_monitor, "Task TEMP HUMI Monitor", 2048, NULL, 2, NULL);
   xTaskCreate(tiny_ml_task, "Tiny ML Task", 2048, NULL, 2, NULL);
   xTaskCreate(Task_Toggle_BOOT, "Task_Toggle_BOOT", 4096, NULL, 2, NULL);

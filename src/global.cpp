@@ -14,3 +14,6 @@ String wifi_ssid = "abcde";
 String wifi_password = "123456789";
 boolean isWifiConnected = false;
 SemaphoreHandle_t xBinarySemaphoreInternet = xSemaphoreCreateBinary();
+
+volatile int neo_state = 0; // Biến toàn cục để lưu trạng thái của NeoPixel
+SemaphoreHandle_t xMutexNeoState = xSemaphoreCreateMutex(); // Mutex để bảo vệ truy cập vào neo_state

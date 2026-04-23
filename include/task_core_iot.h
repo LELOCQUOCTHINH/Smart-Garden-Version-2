@@ -2,6 +2,7 @@
 #define __TASK_CORE_IOT_H__
 
 #include <WiFi.h>
+#define THINGSBOARD_ENABLE_DEBUG 1
 #include <ThingsBoard.h>
 #include <Arduino_MQTT_Client.h>
 #include <HTTPClient.h>
