@@ -14,29 +14,42 @@ volatile bool ledState = false;
 
 constexpr uint16_t BLINKING_INTERVAL_MS_MIN = 10U;
 constexpr uint16_t BLINKING_INTERVAL_MS_MAX = 60000U;
-volatile uint16_t blinkingInterval = 1000U;
+// volatile uint16_t blinkingInterval = 1000U;
 
 constexpr int16_t telemetrySendInterval = 10000U;
+constexpr char BLINKING_INTERVAL_ATTR[] = "blinkingInterval";
 
 constexpr std::array<const char *, 2U> SHARED_ATTRIBUTES_LIST = {
-    LED_STATE_ATTR,
+    // LED_STATE_ATTR,
+    BLINKING_INTERVAL_ATTR,
 };
 
 void processSharedAttributes(const Shared_Attribute_Data &data)
 {
     for (auto it = data.begin(); it != data.end(); ++it)
     {
-        // if (strcmp(it->key().c_str(), BLINKING_INTERVAL_ATTR) == 0)
-        // {
-        //     const uint16_t new_interval = it->value().as<uint16_t>();
-        //     if (new_interval >= BLINKING_INTERVAL_MS_MIN && new_interval <= BLINKING_INTERVAL_MS_MAX)
-        //     {
-        //         blinkingInterval = new_interval;
-        //         Serial.print("Blinking interval is set to: ");
-        //         Y
-        //             Serial.println(new_interval);
-        //     }
-        // }
+        if (strcmp(it->key().c_str(), BLINKING_INTERVAL_ATTR) == 0)
+        {
+            const uint16_t new_interval = it->value().as<uint16_t>();
+            if (new_interval >= BLINKING_INTERVAL_MS_MIN && new_interval <= BLINKING_INTERVAL_MS_MAX)
+            {
+                if(xSemaphoreTake(xMutexBlinkingInterval, (TickType_t)10) == pdTRUE) 
+                {
+                    // ----- (CRITICAL SECTION) -----
+                    blinkingInterval = new_interval;
+                    // return the mutex after updating the state
+                    xSemaphoreGive(xMutexBlinkingInterval); 
+                    // ------------------------------------------------
+                } 
+                else 
+                {
+                    Serial.println("⚠️ ERROR: cannot get Mutex, skip updating blinking interval!");
+                }
+                
+                Serial.print("Blinking interval is set to: ");
+                Serial.println(new_interval);
+            }
+        }
         // if (strcmp(it->key().c_str(), LED_STATE_ATTR) == 0)
         // {
         //     ledState = it->value().as<bool>();

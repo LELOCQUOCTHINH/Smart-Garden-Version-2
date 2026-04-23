@@ -17,6 +17,10 @@ extern String CORE_IOT_PORT;
 
 extern boolean isWifiConnected;
 extern SemaphoreHandle_t xBinarySemaphoreInternet;
+
 extern volatile int neo_state;
 extern SemaphoreHandle_t xMutexNeoState;
+
+extern volatile uint16_t blinkingInterval;
+extern SemaphoreHandle_t xMutexBlinkingInterval;
 #endif
