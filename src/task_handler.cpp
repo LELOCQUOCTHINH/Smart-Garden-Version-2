@@ -3,7 +3,7 @@
 void handleWebSocketMessage(String message)
 {
     Serial.println(message);
-    StaticJsonDocument<256> doc;
+    StaticJsonDocument<512> doc;
 
     DeserializationError error = deserializeJson(doc, message);
     if (error)
@@ -43,6 +43,7 @@ void handleWebSocketMessage(String message)
         String CORE_IOT_TOKEN = doc["value"]["token"].as<String>();
         String CORE_IOT_SERVER = doc["value"]["server"].as<String>();
         String CORE_IOT_PORT = doc["value"]["port"].as<String>();
+        String LOCAL_SERVER = doc["value"]["local_server"].as<String>();
 
         Serial.println("📥 Nhận cấu hình từ WebSocket:");
         Serial.println("SSID: " + WIFI_SSID);
@@ -50,9 +51,10 @@ void handleWebSocketMessage(String message)
         Serial.println("TOKEN: " + CORE_IOT_TOKEN);
         Serial.println("SERVER: " + CORE_IOT_SERVER);
         Serial.println("PORT: " + CORE_IOT_PORT);
+        Serial.println("LOCAL_SERVER: " + LOCAL_SERVER);
 
         // 👉 Gọi hàm lưu cấu hình
-        Save_info_File(WIFI_SSID, WIFI_PASS, CORE_IOT_TOKEN, CORE_IOT_SERVER, CORE_IOT_PORT);
+        Save_info_File(WIFI_SSID, WIFI_PASS, CORE_IOT_TOKEN, CORE_IOT_SERVER, CORE_IOT_PORT, LOCAL_SERVER);
 
         // Phản hồi lại client (tùy chọn)
         String msg = "{\"status\":\"ok\",\"page\":\"setting_saved\"}";

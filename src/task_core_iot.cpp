@@ -147,11 +147,44 @@ void CORE_IOT_reconnect()
 {
     if (!tb.connected())
     {
-        if (!tb.connect(CORE_IOT_SERVER.c_str(), CORE_IOT_TOKEN.c_str(), CORE_IOT_PORT.toInt()))
+        bool isConnected = false;
+
+        // 1. Try connect to Local Server
+        if (LOCAL_SERVER.length() > 0) 
         {
-            // Serial.println("Failed to connect");
+            Serial.print("🌐 Attempting MQTT connection to Local Server: ");
+            Serial.println(LOCAL_SERVER);
+            
+            if (tb.connect(LOCAL_SERVER.c_str(), CORE_IOT_TOKEN.c_str(), CORE_IOT_PORT.toInt(), "ESP32Client", "")) 
+            {
+                Serial.println("✅ CONNECTED to Local Server!");
+                isConnected = true;
+            }
+        }
+
+        // 2. if local connection failed, try connect to CoreIOT Server
+        if (!isConnected) 
+        {
+            Serial.print("⚠️ Local failed/empty. Falling back to CoreIOT: ");
+            Serial.println(CORE_IOT_SERVER);
+            
+            if (tb.connect(CORE_IOT_SERVER.c_str(), CORE_IOT_TOKEN.c_str(), CORE_IOT_PORT.toInt(), "ESP32Client", "")) 
+            {
+                Serial.println("✅ CONNECTED to CoreIOT Server!");
+                isConnected = true;
+            }
+        }
+
+        // 3. if both connections failed
+        if (!isConnected) 
+        {
+            Serial.println("❌ Both connections failed. Retrying in next loop...");
             return;
         }
+
+        // ==============================================================
+        // if connected to either server, subscribe to RPC and Shared Attributes
+        // ==============================================================
 
         tb.sendAttributeData("macAddress", WiFi.macAddress().c_str());
 
@@ -196,9 +229,17 @@ void iot_monitor_task(void *pvParameters)
                 last_iot_send = millis();
 
                 // Sử dụng hàm CORE_IOT_sendata có sẵn trong file task_core_iot.cpp
-                CORE_IOT_sendata("telemetry", "temperature", String(glob_temperature));
-                CORE_IOT_sendata("telemetry", "humidity", String(glob_humidity));
+                // CORE_IOT_sendata("telemetry", "temperature", String(glob_temperature));
+                // CORE_IOT_sendata("telemetry", "humidity", String(glob_humidity));
+                // Tự build chuỗi JSON
+                String payload = "{\"deviceName\":\"ESP32_YoloUNO\",";
+                payload += "\"temperature\":" + String(glob_temperature) + ",";
+                payload += "\"humidity\":" + String(glob_humidity) + "}";
+
+                // Dùng hàm cấp cao của ThingsBoard để gửi chuỗi JSON tự tạo
+                tb.sendTelemetryJson(payload.c_str());
                 
+                Serial.println("Published raw payload: " + payload);
                 // Serial.println("📤 Đã push Telemetry lên CoreIoT");
             }
         }

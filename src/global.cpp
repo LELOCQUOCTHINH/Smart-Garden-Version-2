@@ -7,6 +7,7 @@ String WIFI_PASS;
 String CORE_IOT_TOKEN;
 String CORE_IOT_SERVER;
 String CORE_IOT_PORT;
+String LOCAL_SERVER;
 
 String ssid = "ESP32-YOUR NETWORK HERE!!!";
 String password = "12345678";

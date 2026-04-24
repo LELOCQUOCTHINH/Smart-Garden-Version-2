@@ -20,6 +20,13 @@ void Load_info_File()
     CORE_IOT_TOKEN = strdup(doc["CORE_IOT_TOKEN"]);
     CORE_IOT_SERVER = strdup(doc["CORE_IOT_SERVER"]);
     CORE_IOT_PORT = strdup(doc["CORE_IOT_PORT"]);
+
+    if (doc.containsKey("LOCAL_SERVER")) {
+      LOCAL_SERVER = strdup(doc["LOCAL_SERVER"]);
+    } else {
+      Serial.println("⚠️ Warning: LOCAL_SERVER not found in config, set to empty string");
+      LOCAL_SERVER = "";
+    }
   }
   file.close();
 }
@@ -33,7 +40,7 @@ void Delete_info_File()
   ESP.restart();
 }
 
-void Save_info_File(String wifi_ssid, String wifi_pass, String CORE_IOT_TOKEN, String CORE_IOT_SERVER, String CORE_IOT_PORT)
+void Save_info_File(String wifi_ssid, String wifi_pass, String CORE_IOT_TOKEN, String CORE_IOT_SERVER, String CORE_IOT_PORT, String LOCAL_SERVER)
 {
   Serial.println(wifi_ssid);
   Serial.println(wifi_pass);
@@ -44,6 +51,7 @@ void Save_info_File(String wifi_ssid, String wifi_pass, String CORE_IOT_TOKEN, S
   doc["CORE_IOT_TOKEN"] = CORE_IOT_TOKEN;
   doc["CORE_IOT_SERVER"] = CORE_IOT_SERVER;
   doc["CORE_IOT_PORT"] = CORE_IOT_PORT;
+  doc["LOCAL_SERVER"] = LOCAL_SERVER;
 
   File configFile = LittleFS.open("/info.dat", "w");
   if (configFile)

@@ -14,6 +14,7 @@ extern String WIFI_PASS;
 extern String CORE_IOT_TOKEN;
 extern String CORE_IOT_SERVER;
 extern String CORE_IOT_PORT;
+extern String LOCAL_SERVER;
 
 extern boolean isWifiConnected;
 extern SemaphoreHandle_t xBinarySemaphoreInternet;

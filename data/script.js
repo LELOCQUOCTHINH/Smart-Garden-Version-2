@@ -174,6 +174,7 @@ document.getElementById("settingsForm").addEventListener("submit", function (e) 
     const token = document.getElementById("token").value.trim();
     const server = document.getElementById("server").value.trim();
     const port = document.getElementById("port").value.trim();
+    const localServer = document.getElementById("localServer").value.trim();
 
     const settingsJSON = JSON.stringify({
         page: "setting",
@@ -182,7 +183,8 @@ document.getElementById("settingsForm").addEventListener("submit", function (e) 
             password: password,
             token: token,
             server: server,
-            port: port
+            port: port,
+            local_server: localServer
         }
     });
 
