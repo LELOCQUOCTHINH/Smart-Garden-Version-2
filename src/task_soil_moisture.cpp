@@ -43,7 +43,7 @@ void Task_SoilMoisture(void *pvParameters) {
         // snprintf(oledBuffer, sizeof(oledBuffer), "Soil Moisture: %d    ", sensorValue);
 
         // Send to OLED at the requested coordinates: x = 0, y = 40
-        sendToOLED(0, 40, oledBuffer);
+        sendToOLED(0, 30, oledBuffer);
 
         vTaskDelay(1000 / portTICK_PERIOD_MS); 
     }

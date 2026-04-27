@@ -45,12 +45,12 @@ void task_temp_humi_monitor(void *pvParameters){
         // Serial.println("°C");
 
         char tempBuf[32];
-        sprintf(tempBuf, "Temperature: %.1f \xF7" "C", temperature);
+        sprintf(tempBuf, "Temp:%.1f\xF7" "C", temperature);
         // Hiển thị nhiệt độ ở dòng thứ 3 (y=20), không làm mất dòng Wifi ở trên
         sendToOLED(0, 20, tempBuf);
         
-        sprintf(tempBuf, "Humidity: %.1f %%  ", humidity);
-        sendToOLED(0, 30, tempBuf);
+        sprintf(tempBuf, "Humi:%.1f%%  ", humidity);
+        sendToOLED(68, 20, tempBuf);
         
         vTaskDelay(5000);
     }
