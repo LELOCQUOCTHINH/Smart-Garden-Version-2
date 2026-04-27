@@ -56,6 +56,7 @@ void tiny_ml_task(void *pvParameters)
         // For a simple example, let's assume a single float input
         input->data.f[0] = glob_temperature;
         input->data.f[1] = glob_humidity;
+        input->data.f[2] = glob_soil_moisture;
 
         // Run inference
         TfLiteStatus invoke_status = interpreter->Invoke();
@@ -69,6 +70,16 @@ void tiny_ml_task(void *pvParameters)
         float result = output->data.f[0];
         Serial.print("Inference result: ");
         Serial.println(result);
+
+        if(result > 0.8) { // Assuming binary classification with threshold at 0.8
+            // Serial.println("Anomaly detected!");
+            sendToOLED(0, 50, "AI Inference:Abnormal");
+            // sendToOLED(0, 60, "Relay: ON");
+        } else {
+            // Serial.println("No anomaly.");
+            sendToOLED(0, 50, "AI Inference: Normal ");
+            // sendToOLED(0, 60, "Relay: OFF");
+        }
 
         vTaskDelay(5000);
     }
