@@ -31,7 +31,16 @@ void Task_SoilMoisture(void *pvParameters) {
         // Format the integer into a string.
         // We add padding spaces at the end ("   ") to ensure that if the value 
         // drops from 1000 to 99, the trailing zeros are visually overwritten.
-        snprintf(oledBuffer, sizeof(oledBuffer), "Soil Moisture: %d    ", sensorValue);
+        if(sensorValue < 10) {
+            snprintf(oledBuffer, sizeof(oledBuffer), "Soil Moisture: %d   ", sensorValue);
+        } else if(sensorValue < 100) {
+            snprintf(oledBuffer, sizeof(oledBuffer), "Soil Moisture: %d  ", sensorValue);
+        } else if(sensorValue < 1000) {
+            snprintf(oledBuffer, sizeof(oledBuffer), "Soil Moisture: %d ", sensorValue);
+        } else {
+            snprintf(oledBuffer, sizeof(oledBuffer), "Soil Moisture: %d", sensorValue);
+        }
+        // snprintf(oledBuffer, sizeof(oledBuffer), "Soil Moisture: %d    ", sensorValue);
 
         // Send to OLED at the requested coordinates: x = 0, y = 40
         sendToOLED(0, 40, oledBuffer);

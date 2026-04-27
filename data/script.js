@@ -46,6 +46,9 @@ function onMessage(event) {
         if (data.humidity !== undefined && gaugeHumi) {
             gaugeHumi.refresh(data.humidity);
         }
+        if (data.soil_moisture !== undefined && gaugeSoil) {
+            gaugeSoil.refresh(data.soil_moisture);
+        }
     } catch (e) {
         console.warn("Không phải JSON hợp lệ:", event.data);
     }
@@ -67,6 +70,7 @@ function showSection(id, event) {
 // ==================== HOME GAUGES ====================
 var gaugeTemp;
 var gaugeHumi;
+var gaugeSoil;
 
 window.onload = function () {
     gaugeTemp = new JustGage({
@@ -95,10 +99,19 @@ window.onload = function () {
         levelColors: ["#42A5F5", "#00BCD4", "#0288D1"]
     });
 
-    // setInterval(() => {
-    //     gaugeTemp.refresh(Math.floor(Math.random() * 15) + 20);
-    //     gaugeHumi.refresh(Math.floor(Math.random() * 40) + 40);
-    // }, 3000);
+    gaugeSoil = new JustGage({
+        id: "gauge_soil",     // Phải khớp với id="gauge_soil" bên file HTML
+        value: 0,
+        min: 0,
+        max: 4095,            // Thang đo ADC của ESP32
+        donut: true,
+        pointer: false,
+        gaugeWidthScale: 0.25,
+        gaugeColor: "transparent",
+        levelColorsGradient: true,
+        // Dải màu: Đỏ (Rất khô) -> Vàng (Hơi khô) -> Xanh lá (Tốt) -> Xanh lơ (Sũng nước)
+        levelColors: ["#F44336", "#FFC107", "#4CAF50", "#00BCD4"]
+    });
 };
 
 

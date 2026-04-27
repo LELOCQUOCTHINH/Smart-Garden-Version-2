@@ -94,7 +94,9 @@ void wifi_web_task(void *pvParameters)
         {
             last_local_send = millis();
             
-            String wsData = "{\"temperature\":" + String(glob_temperature) + ",\"humidity\":" + String(glob_humidity) + "}";
+            String wsData = "{\"temperature\":" + String(glob_temperature) + 
+                            ",\"humidity\":" + String(glob_humidity) + 
+                            ",\"soil_moisture\":" + String(glob_soil_moisture) + "}";
             Webserver_sendata(wsData);
         }
 
