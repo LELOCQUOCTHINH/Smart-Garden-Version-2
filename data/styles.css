@@ -62,10 +62,13 @@ body {
 
 /* Home Gauges */
 .gauges-container {
-  display        : flex;
-  flex-wrap      : wrap;
-  gap            : 30px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Ép buộc chia đều thành 3 cột */
+  gap: 20px; /* Khoảng cách giữa các thẻ */
+  width: 100%;
+  max-width: 1200px; /* Giới hạn độ rộng tối đa để trông không bị quá bè */
+  margin: 0 auto; /* Canh giữa container */
+  justify-items: center; /* Canh giữa nội dung bên trong */
 }
 
 .gauge-card {
