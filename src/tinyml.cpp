@@ -51,12 +51,26 @@ void tiny_ml_task(void *pvParameters)
 
     while (1)
     {
-
         // Prepare input data (e.g., sensor readings)
         // For a simple example, let's assume a single float input
-        input->data.f[0] = glob_temperature;
-        input->data.f[1] = glob_humidity;
-        input->data.f[2] = glob_soil_moisture;
+        if(xSemaphoreTake(xMutexTempHumi, (TickType_t)10) == pdTRUE) {
+            // We can read temperature and humidity safely
+            input->data.f[0] = glob_temperature;
+            input->data.f[1] = glob_humidity;
+            xSemaphoreGive(xMutexTempHumi);
+        } else {
+            Serial.println("⚠️ ERROR: cannot get Mutex, skip updating temperature and humidity for TinyML!");
+            // If we can't get the mutex, we can choose to skip this inference or handle it as needed
+        }
+        
+        if(xSemaphoreTake(xMutexSoilMoisture, (TickType_t)10) == pdTRUE) {
+            // We can read soil moisture safely
+            input->data.f[2] = glob_soil_moisture;
+            xSemaphoreGive(xMutexSoilMoisture);
+        } else {
+            Serial.println("⚠️ ERROR: cannot get Mutex, skip updating soil moisture for TinyML!");
+            // If we can't get the mutex, we can choose to skip this inference or handle it as needed
+        }
 
         // Run inference
         TfLiteStatus invoke_status = interpreter->Invoke();

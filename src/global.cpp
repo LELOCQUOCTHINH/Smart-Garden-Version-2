@@ -22,3 +22,6 @@ SemaphoreHandle_t xMutexNeoState = xSemaphoreCreateMutex(); // Mutex để bảo
 
 volatile uint16_t blinkingInterval = 1000U; // Biến toàn cục để lưu khoảng thời gian nháy của LED, mặc định là 1000ms
 SemaphoreHandle_t xMutexBlinkingInterval = xSemaphoreCreateMutex(); // Mutex để bảo vệ truy cập vào blinkingInterval
+
+SemaphoreHandle_t xMutexTempHumi = xSemaphoreCreateMutex(); // Mutex để bảo vệ truy cập vào glob_temperature và glob_humidity
+SemaphoreHandle_t xMutexSoilMoisture = xSemaphoreCreateMutex(); // Mutex để bảo vệ truy cập vào glob_soil_moisture

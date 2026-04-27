@@ -29,4 +29,7 @@ extern SemaphoreHandle_t xMutexNeoState;
 
 extern volatile uint16_t blinkingInterval;
 extern SemaphoreHandle_t xMutexBlinkingInterval;
+
+extern SemaphoreHandle_t xMutexTempHumi;
+extern SemaphoreHandle_t xMutexSoilMoisture;
 #endif

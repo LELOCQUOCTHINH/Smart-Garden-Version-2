@@ -11,11 +11,20 @@ void task_temp_humi_monitor(void *pvParameters){
         /* code */
         
         dht20.read();
-        // Reading temperature in Celsius
-        float temperature = dht20.getTemperature();
-        // Reading humidity
-        float humidity = dht20.getHumidity();
+        float temperature = 0;
+        float humidity = 0;
 
+        if(xSemaphoreTake(xMutexTempHumi, (TickType_t)10) == pdTRUE) {
+            // Update global variables for temperature and humidity
+            // Reading temperature in Celsius
+            temperature = dht20.getTemperature();
+            // Reading humidity
+            humidity = dht20.getHumidity();
+            xSemaphoreGive(xMutexTempHumi);
+        } else {
+            Serial.println("⚠️ ERROR: cannot get Mutex, skip updating temperature and humidity!");
+        }
+        
         // Check if any reads failed and exit early
         if (isnan(temperature) || isnan(humidity)) {
             Serial.println("Failed to read from DHT sensor!");
