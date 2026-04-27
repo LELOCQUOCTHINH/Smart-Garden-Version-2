@@ -3,7 +3,7 @@
 void handleWebSocketMessage(String message)
 {
     Serial.println(message);
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<1024> doc;
 
     DeserializationError error = deserializeJson(doc, message);
     if (error)
@@ -11,9 +11,10 @@ void handleWebSocketMessage(String message)
         Serial.println("❌ Lỗi parse JSON!");
         return;
     }
-    JsonObject value = doc["value"];
+    
     if (doc["page"] == "device")
     {
+        JsonObject value = doc["value"];
         if (!value.containsKey("gpio") || !value.containsKey("status"))
         {
             Serial.println("⚠️ JSON thiếu thông tin gpio hoặc status");
@@ -59,5 +60,25 @@ void handleWebSocketMessage(String message)
         // Phản hồi lại client (tùy chọn)
         String msg = "{\"status\":\"ok\",\"page\":\"setting_saved\"}";
         ws.textAll(msg);
+    }
+
+    else if (doc["page"] == "led_config")
+    {
+        // Ép kiểu nó thành một mảng (JsonArray)
+        JsonArray states = doc["value"].as<JsonArray>();
+        
+        if (xSemaphoreTake(xMutexLedStates, portMAX_DELAY) == pdTRUE) {
+            numLedStates = 0;
+            
+            for (JsonObject state : states) {
+                if (numLedStates < MAX_LED_STATES) {
+                    ledStates[numLedStates].tempThreshold = state["temp"];
+                    ledStates[numLedStates].interval = state["interval"];
+                    numLedStates++;
+                }
+            }
+            xSemaphoreGive(xMutexLedStates);
+            Serial.println("✅ [WEB] Đã cập nhật cấu hình LED Blinky mới từ Web!");
+        }
     }
 }

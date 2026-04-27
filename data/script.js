@@ -6,6 +6,7 @@ window.addEventListener('load', onLoad);
 
 function onLoad(event) {
     initWebSocket();
+    renderLedTable();
 }
 
 function onOpen(event) {
@@ -204,3 +205,61 @@ document.getElementById("settingsForm").addEventListener("submit", function (e) 
     Send_Data(settingsJSON);
     alert("✅ Cấu hình đã được gửi đến thiết bị!");
 });
+
+// Mảng lưu trữ trạng thái tạm thời trên giao diện
+let currentLedStates = [
+    { temp: 25, interval: 2000 },
+    { temp: 33, interval: 500 },
+    { temp: 999, interval: 100 }
+];
+
+function renderLedTable() {
+    const tbody = document.getElementById("ledTableBody");
+    tbody.innerHTML = "";
+    
+    currentLedStates.forEach((state, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><input type="number" id="temp_${index}" value="${state.temp}"></td>
+            <td><input type="number" id="int_${index}" value="${state.interval}"></td>
+            <td><button class="btn-delete" onclick="removeLedRow(${index})"><i class="fa-solid fa-trash"></i></button></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function addLedRow() {
+    if (currentLedStates.length >= 10) {
+        alert("Đã đạt giới hạn tối đa 10 trạng thái!");
+        return;
+    }
+    currentLedStates.push({ temp: 40, interval: 1000 }); // Giá trị mặc định khi thêm mới
+    renderLedTable();
+}
+
+function removeLedRow(index) {
+    currentLedStates.splice(index, 1);
+    renderLedTable();
+}
+
+function saveLedConfig() {
+    // 1. Cập nhật mảng từ các ô input
+    currentLedStates.forEach((state, index) => {
+        state.temp = parseFloat(document.getElementById(`temp_${index}`).value);
+        state.interval = parseInt(document.getElementById(`int_${index}`).value);
+    });
+
+    // 2. Sắp xếp mảng tăng dần theo nhiệt độ (Cực kỳ quan trọng để logic C++ chạy đúng)
+    currentLedStates.sort((a, b) => a.temp - b.temp);
+
+    // 3. Đóng gói thành JSON chuẩn format bạn đang dùng
+    const configJSON = JSON.stringify({
+        page: "led_config",
+        value: currentLedStates
+    });
+
+    // 4. Gửi xuống ESP32
+    Send_Data(configJSON);
+    alert("Đã gửi cấu hình LED xuống thiết bị!");
+    renderLedTable(); // Render lại để hiển thị mảng đã được sắp xếp
+}

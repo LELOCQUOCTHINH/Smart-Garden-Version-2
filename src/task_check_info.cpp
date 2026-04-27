@@ -88,3 +88,64 @@ bool check_info_File(bool check)
   }
   return true;
 }
+
+// 1. Hàm lưu mảng trạng thái LED xuống File
+void Save_LED_Config() {
+    File file = LittleFS.open("/led_config.json", "w");
+    if (!file) {
+        Serial.println("❌ Lỗi: Không thể mở file led_config.json để ghi!");
+        return;
+    }
+    
+    StaticJsonDocument<1024> doc;
+    JsonArray array = doc.to<JsonArray>();
+    
+    // Khóa Mutex an toàn để đọc mảng từ RAM
+    if (xSemaphoreTake(xMutexLedStates, portMAX_DELAY) == pdTRUE) {
+        for (int i = 0; i < numLedStates; i++) {
+            JsonObject state = array.createNestedObject();
+            state["temp"] = ledStates[i].tempThreshold;
+            state["interval"] = ledStates[i].interval;
+        }
+        xSemaphoreGive(xMutexLedStates);
+    }
+    
+    serializeJson(doc, file);
+    file.close();
+    Serial.println("💾 Đã lưu cấu hình LED vào LittleFS thành công.");
+}
+
+// 2. Hàm đọc mảng trạng thái LED từ File lên RAM
+void Load_LED_Config() {
+    if (!LittleFS.exists("/led_config.json")) {
+        Serial.println("⚠️ Không tìm thấy file led_config.json, sử dụng LED config mặc định trên RAM.");
+        return;
+    }
+    
+    File file = LittleFS.open("/led_config.json", "r");
+    if (!file) return;
+
+    StaticJsonDocument<1024> doc;
+    DeserializationError error = deserializeJson(doc, file);
+    file.close();
+
+    if (error) {
+        Serial.println("❌ Lỗi parse JSON từ file led_config.json!");
+        return;
+    }
+
+    JsonArray array = doc.as<JsonArray>();
+    
+    if (xSemaphoreTake(xMutexLedStates, portMAX_DELAY) == pdTRUE) {
+        numLedStates = 0;
+        for (JsonObject state : array) {
+            if (numLedStates < MAX_LED_STATES) {
+                ledStates[numLedStates].tempThreshold = state["temp"];
+                ledStates[numLedStates].interval = state["interval"];
+                numLedStates++;
+            }
+        }
+        xSemaphoreGive(xMutexLedStates);
+        Serial.println("📂 Đã tải cấu hình LED từ LittleFS lên RAM.");
+    }
+}

@@ -32,4 +32,16 @@ extern SemaphoreHandle_t xMutexBlinkingInterval;
 
 extern SemaphoreHandle_t xMutexTempHumi;
 extern SemaphoreHandle_t xMutexSoilMoisture;
+
+#define MAX_LED_STATES 10
+
+// Cấu trúc định nghĩa 1 trạng thái
+struct LedState {
+    float tempThreshold;
+    int interval;
+};
+
+extern LedState ledStates[MAX_LED_STATES];
+extern int numLedStates;
+extern SemaphoreHandle_t xMutexLedStates;
 #endif

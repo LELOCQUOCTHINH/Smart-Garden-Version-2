@@ -353,3 +353,23 @@ body {
     opacity  : 1;
   }
 }
+
+#ledTable th, #ledTable td {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+#ledTable input {
+  width: 80px;
+  padding: 5px;
+  text-align: center;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+}
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}

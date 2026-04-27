@@ -25,3 +25,12 @@ SemaphoreHandle_t xMutexBlinkingInterval = xSemaphoreCreateMutex(); // Mutex đ�
 
 SemaphoreHandle_t xMutexTempHumi = xSemaphoreCreateMutex(); // Mutex để bảo vệ truy cập vào glob_temperature và glob_humidity
 SemaphoreHandle_t xMutexSoilMoisture = xSemaphoreCreateMutex(); // Mutex để bảo vệ truy cập vào glob_soil_moisture
+
+LedState ledStates[MAX_LED_STATES] = {
+    {25.0, 2000},
+    {33.0, 500},
+    {999.0, 100} // Ngưỡng cao nhất để hứng các giá trị vượt mốc 33
+};
+int numLedStates = 3;
+
+SemaphoreHandle_t xMutexLedStates = xSemaphoreCreateMutex();

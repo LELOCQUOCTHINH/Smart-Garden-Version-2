@@ -29,6 +29,7 @@
     <div class="nav-item" onclick="showSection('device', event)">⚡ <span>Thiết bị</span></div>
     <div class="nav-item" onclick="showSection('info', event)">ℹ️ <span>Thông tin</span></div>
     <div class="nav-item" onclick="showSection('settings', event)">⚙️ <span>Cài đặt</span></div>
+    <div class="nav-item" onclick="showSection('led-config-page', event)">💡 <span>Cấu hình LED</span></div>
   </div>
 
   <!-- Nội dung chính -->
@@ -124,6 +125,32 @@
             <i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình
           </button>
         </form>
+      </div>
+    </div>
+
+    <div id="led-config-page" class="section fade-in" style="display:none;">
+      <header>
+        <h1>Cấu hình LED Blinky</h1>
+        <p>Cài đặt tốc độ chớp tắt theo nhiệt độ (Tối đa 10 trạng thái)</p>
+      </header>
+
+      <div class="card" style="max-width: 600px; margin: 0 auto; text-align: left;">
+        <table id="ledTable" style="width: 100%; text-align: center; margin-bottom: 20px;">
+          <thead>
+            <tr>
+              <th>Nhiệt độ dưới (< °C)</th>
+              <th>Tần số chớp (ms)</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="ledTableBody">
+            </tbody>
+        </table>
+        
+        <div class="dialog-buttons">
+          <button class="confirm" onclick="addLedRow()"><i class="fa-solid fa-plus"></i> Thêm trạng thái</button>
+          <button class="confirm" style="background:#4CAF50;" onclick="saveLedConfig()"><i class="fa-solid fa-floppy-disk"></i> Gửi cấu hình</button>
+        </div>
       </div>
     </div>
   </div>

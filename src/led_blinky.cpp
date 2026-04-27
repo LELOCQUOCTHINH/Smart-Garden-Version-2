@@ -25,19 +25,25 @@ void led_blinky(void *pvParameters){
     }
 
     // ------------------------------------------------
-    // 2. LOGIC 3 HÀNH VI LED THEO NHIỆT ĐỘ
+    // 2. Tìm kiếm Interval tương ứng với mảng cấu hình do User thiết lập
     // ------------------------------------------------
-    if (local_temp < 25.0) {
-        // Hành vi 1: Lạnh -> LED chớp rất chậm (2000ms)
-        current_blinking_interval = 2000;
-    } 
-    else if (local_temp >= 25.0 && local_temp < 33.0) {
-        // Hành vi 2: Bình thường -> LED chớp vừa (500ms)
-        current_blinking_interval = 500;
-    } 
-    else {
-        // Hành vi 3: Nóng (Cảnh báo) -> LED chớp cực nhanh (100ms)
-        current_blinking_interval = 100;
+    if(xSemaphoreTake(xMutexLedStates, (TickType_t)10) == pdTRUE) {
+        if (numLedStates > 0) {
+            bool found = false;
+            // Duyệt qua danh sách ngưỡng (Giả sử User/JS đã sắp xếp tăng dần)
+            for (int i = 0; i < numLedStates; i++) {
+                if (local_temp < ledStates[i].tempThreshold) {
+                    current_blinking_interval = ledStates[i].interval;
+                    found = true;
+                    break;
+                }
+            }
+            // Nếu nhiệt độ cao hơn tất cả các ngưỡng, dùng state cuối cùng
+            if (!found) {
+                current_blinking_interval = ledStates[numLedStates - 1].interval;
+            }
+        }
+        xSemaphoreGive(xMutexLedStates); 
     }
 
     // ------------------------------------------------

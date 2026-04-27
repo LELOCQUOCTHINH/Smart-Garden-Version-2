@@ -49,7 +49,7 @@ void task_temp_humi_monitor(void *pvParameters){
         // Hiển thị nhiệt độ ở dòng thứ 3 (y=20), không làm mất dòng Wifi ở trên
         sendToOLED(0, 20, tempBuf);
         
-        sprintf(tempBuf, "Humi:%.1f%%  ", humidity);
+        sprintf(tempBuf, "Humi:%.1f%%", humidity);
         sendToOLED(68, 20, tempBuf);
         
         vTaskDelay(5000);
