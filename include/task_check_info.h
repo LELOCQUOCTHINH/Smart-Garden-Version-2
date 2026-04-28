@@ -5,6 +5,7 @@
 #include "LittleFS.h"
 #include "global.h"
 #include "task_wifi.h"
+#include "task_monitor.h"
 
 
 bool check_info_File(bool check);
@@ -15,5 +16,7 @@ void Save_LED_Config();
 void Load_LED_Config();
 void Save_Neo_Config();
 void Load_Neo_Config();
+void Save_Thresholds(SystemContext *ctx);
+void Load_Thresholds(SystemContext *ctx);
 
 #endif

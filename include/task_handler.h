@@ -4,6 +4,8 @@
 
 #include <ArduinoJson.h>
 #include <task_check_info.h>
+#include "global.h"
+#include "task_monitor.h"
 
 extern void handleWebSocketMessage(String message);
 #endif

@@ -78,6 +78,7 @@ bool check_info_File(bool check)
     Load_info_File();
     Load_LED_Config();
     Load_Neo_Config();
+    Load_Thresholds(my_ctx);
   }
   
   if (WIFI_SSID.isEmpty() && WIFI_PASS.isEmpty())
@@ -198,5 +199,45 @@ void Load_Neo_Config() {
         }
         xSemaphoreGive(xMutexNeoStates);
         Serial.printf("📂 [FS] Đã tải %d trạng thái NeoPixel.\n", numNeoStates);
+    }
+}
+
+// 1. Lưu ngưỡng cảnh báo
+void Save_Thresholds(SystemContext *my_ctx) {
+    File file = LittleFS.open("/thresholds.json", "w");
+    if (!file) return;
+
+    StaticJsonDocument<512> doc;
+    if (xSemaphoreTake(my_ctx->mutex, portMAX_DELAY) == pdTRUE) {
+        doc["tw"] = my_ctx->limits.temp_warn;
+        doc["tc"] = my_ctx->limits.temp_crit;
+        doc["hw"] = my_ctx->limits.humi_warn;
+        doc["hc"] = my_ctx->limits.humi_crit;
+        doc["sw"] = my_ctx->limits.soil_warn;
+        doc["sc"] = my_ctx->limits.soil_crit;
+        xSemaphoreGive(my_ctx->mutex);
+    }
+    serializeJson(doc, file);
+    file.close();
+}
+
+// 2. Tải ngưỡng cảnh báo lên RAM
+void Load_Thresholds(SystemContext *my_ctx) {
+    if (!LittleFS.exists("/thresholds.json")) return;
+    File file = LittleFS.open("/thresholds.json", "r");
+    if (!file) return;
+
+    StaticJsonDocument<512> doc;
+    deserializeJson(doc, file);
+    file.close();
+
+    if (xSemaphoreTake(my_ctx->mutex, portMAX_DELAY) == pdTRUE) {
+        my_ctx->limits.temp_warn = doc["tw"] | 35.0;
+        my_ctx->limits.temp_crit = doc["tc"] | 45.0;
+        my_ctx->limits.humi_warn = doc["hw"] | 70.0;
+        my_ctx->limits.humi_crit = doc["hc"] | 85.0;
+        my_ctx->limits.soil_warn = doc["sw"] | 2000;
+        my_ctx->limits.soil_crit = doc["sc"] | 3500;
+        xSemaphoreGive(my_ctx->mutex);
     }
 }

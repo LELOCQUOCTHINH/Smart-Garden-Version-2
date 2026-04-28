@@ -96,7 +96,8 @@ void wifi_web_task(void *pvParameters)
             
             String wsData = "{\"temperature\":" + String(glob_temperature) + 
                             ",\"humidity\":" + String(glob_humidity) + 
-                            ",\"soil_moisture\":" + String(glob_soil_moisture) + "}";
+                            ",\"soil_moisture\":" + String(glob_soil_moisture) +
+                            ",\"state\":" + String((int)my_ctx->currentState) + "}";
             Webserver_sendata(wsData);
         }
 

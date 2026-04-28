@@ -12,6 +12,7 @@
 #include "task_wifi.h"
 #include "task_webserver.h"
 #include "task_core_iot.h"
+#include "task_monitor.h"
 
 void setup()
 {
@@ -22,6 +23,8 @@ void setup()
   xTaskCreate(Task_OLED, "Task OLED", 2048, NULL, 2, NULL);
   xTaskCreate(task_temp_humi_monitor, "Task TEMP HUMI Monitor", 4096, NULL, 2, NULL);
   xTaskCreate(Task_SoilMoisture, "Task Soil Moisture", 2048, NULL, 2, NULL);
+
+  xTaskCreate(Task_Monitor, "Monitor", 2048, NULL, 2, NULL);
 
   xTaskCreate(neo_control_RPC, "Task NEO Control", 2048, NULL, 2, NULL);
   xTaskCreate(tiny_ml_task, "Tiny ML Task", 2048, NULL, 2, NULL);

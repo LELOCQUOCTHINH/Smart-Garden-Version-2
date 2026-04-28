@@ -373,3 +373,181 @@ body {
   border-radius: 5px;
   cursor: pointer;
 }
+
+/* --- TOAST NOTIFICATION STYLES --- */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none; /* Cho phép click xuyên qua vùng trống */
+}
+
+.toast {
+  min-width: 250px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: slideInRight 0.4s ease-out forwards;
+  pointer-events: auto; /* Cho phép click vào chính cái thông báo */
+}
+
+/* Các trạng thái màu sắc */
+.toast.warning {
+  background-color: #f39c12; /* Màu cam vàng */
+}
+
+.toast.critical {
+  background-color: #e74c3c; /* Màu đỏ */
+}
+
+/* Nút tắt nhỏ (dấu X) */
+.toast-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  margin-left: 15px;
+  opacity: 0.8;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+/* Hiệu ứng trượt và mờ dần */
+@keyframes slideInRight {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutToast {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(120%); }
+}
+
+/* --- HỘP TRẠNG THÁI LIÊN TỤC --- */
+.status-box {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.status-box.warning {
+  background-color: #f39c12; /* Vàng cam */
+}
+
+.status-box.critical {
+  background-color: #e74c3c; /* Đỏ */
+}
+
+#system-status-icon {
+  font-size: 24px;
+}
+
+.threshold-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.threshold-row-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #f39c12;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #f1c40f;
+}
+
+.threshold-row-title.critical {
+    color: #e74c3c;
+    border-bottom-color: #e74c3c;
+    margin-top: 40px;
+}
+
+.threshold-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.threshold-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.threshold-item label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.input-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.input-wrap span {
+    font-size: 20px;
+    font-weight: bold;
+    color: #555;
+}
+
+.input-wrap input {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.threshold-item small {
+    display: block;
+    margin-top: 8px;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.confirm-btn {
+    background: #27ae60;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.confirm-btn:hover {
+    background: #219150;
+    transform: scale(1.05);
+}

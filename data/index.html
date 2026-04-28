@@ -31,6 +31,7 @@
     <div class="nav-item" onclick="showSection('settings', event)">⚙️ <span>Cài đặt</span></div>
     <div class="nav-item" onclick="showSection('led-config-page', event)">💡 <span>Cấu hình LED</span></div>
     <div class="nav-item" onclick="showSection('neo-config-page', event)">🌈 <span>Màu NeoPixel</span></div>
+    <div class="nav-item" onclick="showSection('threshold-config', event)">🚨 <span>Ngưỡng cảnh báo</span></div>
   </div>
 
   <!-- Nội dung chính -->
@@ -129,6 +130,7 @@
       </div>
     </div>
 
+    <!-- LED BLINKY CONFIG -->
     <div id="led-config-page" class="section fade-in" style="display:none;">
       <header>
         <h1>Cấu hình LED Blinky</h1>
@@ -155,6 +157,7 @@
       </div>
     </div>
 
+    <!-- NEO PIXEL CONFIG -->
     <div id="neo-config-page" class="section fade-in" style="display:none;">
       <header>
         <h1>Cấu hình NeoPixel</h1>
@@ -179,6 +182,61 @@
         </div>
       </div>
     </div>
+
+    <!-- THRESHOLD WARNING CONFIG -->
+    <div id="threshold-config" class="section fade-in" style="display:none;">
+    <header>
+        <h1>Cài đặt ngưỡng hệ thống</h1>
+        <p>Thiết lập các mức giới hạn để kích hoạt cảnh báo</p>
+    </header>
+
+    <div class="threshold-container">
+          <div class="threshold-row-title">⚠️ MỨC CẢNH BÁO (WARNING)</div>
+          <div class="threshold-grid">
+              <div class="threshold-item">
+                  <label>🌡️ Nhiệt độ</label>
+                  <div class="input-wrap"><span>></span><input type="number" id="tw"></div>
+                  <small>(Báo khi nóng hơn)</small>
+              </div>
+              <div class="threshold-item">
+                  <label>💧 Độ ẩm khí</label>
+                  <div class="input-wrap"><span><</span><input type="number" id="hw"></div>
+                  <small>(Báo khi khô hơn)</small>
+              </div>
+              <div class="threshold-item">
+                  <label>🌱 Độ ẩm đất</label>
+                  <div class="input-wrap"><span><</span><input type="number" id="sw"></div>
+                  <small>(Báo khi thiếu nước)</small>
+              </div>
+          </div>
+
+          <div class="threshold-row-title critical">🚨 MỨC NGUY HIỂM (CRITICAL)</div>
+          <div class="threshold-grid">
+              <div class="threshold-item">
+                  <label>🌡️ Nhiệt độ</label>
+                  <div class="input-wrap"><span>></span><input type="number" id="tc"></div>
+                  <small>(Báo khi quá nóng)</small>
+              </div>
+              <div class="threshold-item">
+                  <label>💧 Độ ẩm khí</label>
+                  <div class="input-wrap"><span><</span><input type="number" id="hc"></div>
+                  <small>(Báo khi quá khô)</small>
+              </div>
+              <div class="threshold-item">
+                  <label>🌱 Độ ẩm đất</label>
+                  <div class="input-wrap"><span><</span><input type="number" id="sc"></div>
+                  <small>(Báo khi cạn nước)</small>
+              </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 30px;">
+              <button class="confirm-btn" onclick="saveThresholds()">
+                  <i class="fa-solid fa-floppy-disk"></i> LƯU TẤT CẢ CẤU HÌNH
+              </button>
+          </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- HỘP THOẠI THÊM RELAY -->
@@ -211,6 +269,12 @@
     </div>
   </div>
 
+  <div id="toast-container" class="toast-container"></div>
+
+  <div id="system-status-box" class="status-box" style="display: none;">
+    <span id="system-status-icon"></span>
+    <span id="system-status-text"></span>
+  </div>
   <!-- JS -->
   <script src="script.js"></script>
 </body>

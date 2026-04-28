@@ -62,6 +62,7 @@ void handleWebSocketMessage(String message)
         ws.textAll(msg);
     }
 
+    // save LED config from Web
     else if (doc["page"] == "led_config")
     {
         // Ép kiểu nó thành một mảng (JsonArray)
@@ -78,12 +79,13 @@ void handleWebSocketMessage(String message)
                 }
             }
             xSemaphoreGive(xMutexLedStates);
-            Serial.println("✅ [WEB] Đã cập nhật cấu hình LED Blinky mới từ Web!");
-
+            
             Save_LED_Config();
+            Serial.println("✅ [WEB] Đã cập nhật cấu hình LED Blinky mới từ Web!");
         }
     }
 
+    // load LED config lên Web
     else if (doc["page"] == "request_led_config") 
     {
         StaticJsonDocument<1024> resDoc;
@@ -103,7 +105,8 @@ void handleWebSocketMessage(String message)
         serializeJson(resDoc, response);
         ws.textAll(response); // Gửi mảng LED hiện tại ngược lại cho giao diện Web
     }
-
+    
+    // save Neo config from Web
     else if (doc["page"] == "neo_config")
     {
         JsonArray states = doc["value"].as<JsonArray>();
@@ -120,8 +123,11 @@ void handleWebSocketMessage(String message)
             }
             xSemaphoreGive(xMutexNeoStates);
             Save_Neo_Config(); // Lưu xuống Flash
+            Serial.println("✅ [WEB] Đã cập nhật cấu hình NeoPixel mới từ Web!");
         }
     }
+
+    //load Neo config lên Web
     else if (doc["page"] == "request_neo_config") 
     {
         StaticJsonDocument<1024> resDoc;
@@ -140,5 +146,36 @@ void handleWebSocketMessage(String message)
         String response;
         serializeJson(resDoc, response);
         ws.textAll(response);
+    }
+
+    else if (doc["page"] == "threshold_config") {
+        JsonObject val = doc["value"];
+        if (xSemaphoreTake(my_ctx->mutex, portMAX_DELAY) == pdTRUE) {
+            my_ctx->limits.temp_warn = val["tw"];
+            my_ctx->limits.temp_crit = val["tc"];
+            my_ctx->limits.humi_warn = val["hw"];
+            my_ctx->limits.humi_crit = val["hc"];
+            my_ctx->limits.soil_warn = val["sw"];
+            my_ctx->limits.soil_crit = val["sc"];
+            xSemaphoreGive(my_ctx->mutex);
+            Save_Thresholds(my_ctx); // Lưu lại ngay
+            // ws.textAll("{\"page\":\"threshold_saved\"}");
+            Serial.println("✅ [WEB] Đã cập nhật cấu hình thresholds mới từ Web!");
+        }
+    }
+
+    else if (doc["page"] == "request_threshold_config") {
+        StaticJsonDocument<512> res;
+        res["page"] = "threshold_config_data";
+        JsonObject val = res.createNestedObject("value");
+        val["tw"] = my_ctx->limits.temp_warn;
+        val["tc"] = my_ctx->limits.temp_crit;
+        val["hw"] = my_ctx->limits.humi_warn;
+        val["hc"] = my_ctx->limits.humi_crit;
+        val["sw"] = my_ctx->limits.soil_warn;
+        val["sc"] = my_ctx->limits.soil_crit;
+        String out;
+        serializeJson(res, out);
+        ws.textAll(out);
     }
 }

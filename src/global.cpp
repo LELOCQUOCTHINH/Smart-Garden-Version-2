@@ -43,5 +43,8 @@ NeoState neoStates[MAX_NEO_STATES] = {
     {999.0, 0, 0, 255}    // Khác: Xanh dương
 };
 int numNeoStates = 3;
-
 SemaphoreHandle_t xMutexNeoStates = xSemaphoreCreateMutex();
+
+//-----------------------------------------------CRITICAL WARNING----------------------------------------------
+SystemContext *my_ctx = new SystemContext();
+

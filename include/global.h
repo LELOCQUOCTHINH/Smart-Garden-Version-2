@@ -9,6 +9,9 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "task_oled.h"
+#include "led_blinky.h"
+#include "neo_control.h"
+#include "task_monitor.h"
 
 extern float glob_temperature;
 extern float glob_humidity;
@@ -34,28 +37,17 @@ extern SemaphoreHandle_t xMutexTempHumi;
 extern SemaphoreHandle_t xMutexSoilMoisture;
 
 //----------------------------------------------led blinky config----------------------------------------------
-#define MAX_LED_STATES 10
-// Cấu trúc định nghĩa 1 trạng thái
-struct LedState {
-    float tempThreshold;
-    int interval;
-};
 
 extern LedState ledStates[MAX_LED_STATES];
 extern int numLedStates;
 extern SemaphoreHandle_t xMutexLedStates;
 
 // ---------------------------------------------NeoPixel control config---------------------------------------------
-#define MAX_NEO_STATES 10
-// Cấu trúc trạng thái NeoPixel
-struct NeoState {
-    float humiThreshold;
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-};
 
 extern NeoState neoStates[MAX_NEO_STATES];
 extern int numNeoStates;
 extern SemaphoreHandle_t xMutexNeoStates; // Mutex để bảo vệ
+
+// -----------------------------------------------CRITICAL WARNING----------------------------------------------
+extern SystemContext *my_ctx; // Context chung cho việc monitor và cảnh báo trạng thái hệ thống
 #endif
