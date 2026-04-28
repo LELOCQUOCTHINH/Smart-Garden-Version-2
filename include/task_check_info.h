@@ -18,5 +18,7 @@ void Save_Neo_Config();
 void Load_Neo_Config();
 void Save_Thresholds(SystemContext *ctx);
 void Load_Thresholds(SystemContext *ctx);
+void Save_Relay_Config();
+void Load_Relay_Config();
 
 #endif

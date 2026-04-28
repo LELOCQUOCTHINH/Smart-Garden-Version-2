@@ -85,15 +85,22 @@ void tiny_ml_task(void *pvParameters)
         Serial.print("Inference result: ");
         Serial.println(result);
 
+        int output_AI = 0;
+        
         if(result > 0.8) { // Assuming binary classification with threshold at 0.8
             // Serial.println("Anomaly detected!");
             sendToOLED(0, 50, "AI Inference:Abnormal");
+            output_AI = 1; // Set the AI output to indicate abnormal condition
             // sendToOLED(0, 60, "Relay: ON");
         } else {
             // Serial.println("No anomaly.");
             sendToOLED(0, 50, "AI Inference: Normal ");
             // sendToOLED(0, 60, "Relay: OFF");
         }
+
+        // Chỉ cần ném vào Queue, Task Relay sẽ tự lọc ra thiết bị nào đang bật chế độ AI để tác động
+        RelayEvent ev = {1, output_AI}; // eventType = 1 (Lệnh AI), truyền kèm state
+        xQueueSend(glob_relayQueue, &ev, 0);
 
         vTaskDelay(5000);
     }

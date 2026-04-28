@@ -242,16 +242,23 @@
   <!-- HỘP THOẠI THÊM RELAY -->
   <div id="addRelayDialog" class="dialog-overlay" style="display:none;">
     <div class="dialog fade-in">
-      <h3><i class="fa-solid fa-plug"></i> Thêm relay mới</h3>
-      <p>Nhập tên relay và chân GPIO</p>
+      <h3><i class="fa-solid fa-plug"></i> Thêm/Sửa Relay</h3>
       <div class="input-field">
-        <input type="text" id="relayName" placeholder="Tên relay">
+        <input type="text" id="relayName" placeholder="Tên thiết bị (VD: Máy bơm)">
       </div>
       <div class="input-field">
         <input type="number" id="relayGPIO" placeholder="Chân GPIO">
       </div>
-      <div class="dialog-buttons">
-        <button class="confirm" onclick="saveRelay()">Lưu</button>
+      
+      <div class="input-field" style="margin-top: 15px;">
+        <select id="relayMode" style="width: 90%; padding: 10px; border-radius: 8px;">
+            <option value="0">✋ Điều khiển Thủ công (Manual)</option>
+            <option value="1">🤖 Điều khiển bởi AI (Tự động)</option>
+        </select>
+      </div>
+
+      <div class="dialog-buttons" style="margin-top: 20px;">
+        <button class="confirm" onclick="saveRelay()">Lưu thiết bị</button>
         <button class="cancel" onclick="closeAddRelayDialog()">Hủy</button>
       </div>
     </div>

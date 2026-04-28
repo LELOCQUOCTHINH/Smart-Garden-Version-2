@@ -551,3 +551,45 @@ body {
     background: #219150;
     transform: scale(1.05);
 }
+
+/* Badge hiển thị chế độ */
+.mode-badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+.mode-manual {
+    background-color: #3498db;
+    color: white;
+}
+
+.mode-ai {
+    background-color: #9b59b6;
+    color: white;
+}
+
+/* Nút đổi chế độ */
+.switch-mode-btn {
+    display: block;
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    cursor: pointer;
+    margin: 0 auto 10px auto;
+}
+
+.switch-mode-btn:hover {
+    background: #e0e0e0;
+}
+
+.device-card {
+    /* Đảm bảo card đủ cao để chứa thêm thông tin mode */
+    padding: 20px;
+    text-align: center;
+}

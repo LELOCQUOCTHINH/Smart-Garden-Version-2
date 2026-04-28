@@ -52,7 +52,7 @@ void task_temp_humi_monitor(void *pvParameters){
         sprintf(tempBuf, "Humi:%.1f%%", humidity);
         sendToOLED(68, 20, tempBuf);
         
-        vTaskDelay(5000);
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
     
 }

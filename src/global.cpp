@@ -48,3 +48,7 @@ SemaphoreHandle_t xMutexNeoStates = xSemaphoreCreateMutex();
 //-----------------------------------------------CRITICAL WARNING----------------------------------------------
 SystemContext *my_ctx = new SystemContext();
 
+//-----------------------------------------------RELAY CONTROLLER config----------------------------------------------
+RelayInfo glob_relays[MAX_RELAYS];
+QueueHandle_t glob_relayQueue = NULL;
+SemaphoreHandle_t xMutexRelays = NULL;

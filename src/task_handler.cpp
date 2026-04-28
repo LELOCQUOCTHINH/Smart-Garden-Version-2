@@ -12,31 +12,77 @@ void handleWebSocketMessage(String message)
         return;
     }
     
-    if (doc["page"] == "device")
-    {
-        JsonObject value = doc["value"];
-        if (!value.containsKey("gpio") || !value.containsKey("status"))
-        {
-            Serial.println("⚠️ JSON thiếu thông tin gpio hoặc status");
-            return;
-        }
+    else if (doc["page"] == "device") {
+        String action = doc["action"].as<String>();
+        JsonObject val = doc["value"];
+        int gpio = val["gpio"];
 
-        int gpio = value["gpio"];
-        String status = value["status"].as<String>();
+        if (xSemaphoreTake(xMutexRelays, portMAX_DELAY) == pdTRUE) {
+            // Thêm mới hoặc cập nhật Relay
+            if (action == "update") {
+                int slot = -1;
+                for(int i = 0; i < MAX_RELAYS; i++) {
+                    if(glob_relays[i].active && glob_relays[i].gpio == gpio) { slot = i; break; }
+                    if(!glob_relays[i].active && slot == -1) { slot = i; }
+                }
+                
+                if (slot != -1) {
+                    glob_relays[slot].active = true;
+                    glob_relays[slot].gpio = gpio;
+                    glob_relays[slot].mode = val["mode"];
+                    glob_relays[slot].state = val["state"];
 
-        Serial.printf("⚙️ Điều khiển GPIO %d → %s\n", gpio, status.c_str());
-        pinMode(gpio, OUTPUT);
-        if (status.equalsIgnoreCase("ON"))
-        {
-            digitalWrite(gpio, HIGH);
-            Serial.printf("🔆 GPIO %d ON\n", gpio);
-        }
-        else if (status.equalsIgnoreCase("OFF"))
-        {
-            digitalWrite(gpio, LOW);
-            Serial.printf("💤 GPIO %d OFF\n", gpio);
+                    if (val.containsKey("name")) {
+                        String n = val["name"].as<String>();
+                        strlcpy(glob_relays[slot].name, n.c_str(), sizeof(glob_relays[slot].name));
+                    }
+                }
+            } 
+            // Xóa Relay
+            else if (action == "delete") {
+                for(int i = 0; i < MAX_RELAYS; i++) {
+                    if(glob_relays[i].active && glob_relays[i].gpio == gpio) {
+                        glob_relays[i].active = false;
+                        break;
+                    }
+                }
+            }
+            xSemaphoreGive(xMutexRelays);
+
+            Save_Relay_Config(); // Lưu cấu hình mới xuống Flash
+            
+            // Bắn tín hiệu vào Queue để đánh thức Task Relay thực thi ngay lập tức
+            RelayEvent ev = {0, 0}; // eventType = 0 (Lệnh Web)
+            xQueueSend(glob_relayQueue, &ev, 0);
+            
+            Serial.printf("⚙️ Đã chuyển lệnh GPIO %d vào Queue\n", gpio);
         }
     }
+
+    else if (doc["page"] == "request_relay_config") {
+        StaticJsonDocument<1024> resDoc;
+        resDoc["page"] = "relay_config_data";
+        JsonArray array = resDoc.createNestedArray("value");
+        
+        if (xSemaphoreTake(xMutexRelays, portMAX_DELAY) == pdTRUE) {
+            for (int i = 0; i < MAX_RELAYS; i++) {
+                if (glob_relays[i].active) {
+                    JsonObject relay = array.createNestedObject();
+                    relay["id"] = glob_relays[i].gpio; // Ta dùng thẳng chân GPIO làm ID trên web
+                    relay["name"] = glob_relays[i].name;
+                    relay["gpio"] = glob_relays[i].gpio;
+                    relay["mode"] = glob_relays[i].mode;
+                    relay["state"] = glob_relays[i].state;
+                }
+            }
+            xSemaphoreGive(xMutexRelays);
+        }
+        
+        String response;
+        serializeJson(resDoc, response);
+        ws.textAll(response);
+    }
+
     else if (doc["page"] == "setting")
     {
         String WIFI_SSID = doc["value"]["ssid"].as<String>();

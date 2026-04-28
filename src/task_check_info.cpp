@@ -79,6 +79,7 @@ bool check_info_File(bool check)
     Load_LED_Config();
     Load_Neo_Config();
     Load_Thresholds(my_ctx);
+    Load_Relay_Config();
   }
   
   if (WIFI_SSID.isEmpty() && WIFI_PASS.isEmpty())
@@ -239,5 +240,68 @@ void Load_Thresholds(SystemContext *my_ctx) {
         my_ctx->limits.soil_warn = doc["sw"] | 2000;
         my_ctx->limits.soil_crit = doc["sc"] | 3500;
         xSemaphoreGive(my_ctx->mutex);
+    }
+}
+
+// 1. Hàm lưu cấu hình Relay xuống Flash
+void Save_Relay_Config() {
+    File file = LittleFS.open("/relay_config.json", "w");
+    if (!file) return;
+
+    StaticJsonDocument<1024> doc;
+    JsonArray array = doc.to<JsonArray>();
+
+    if (xSemaphoreTake(xMutexRelays, portMAX_DELAY) == pdTRUE) {
+        for (int i = 0; i < MAX_RELAYS; i++) {
+            if (glob_relays[i].active) {
+                JsonObject relay = array.createNestedObject();
+                relay["name"] = glob_relays[i].name;
+                relay["gpio"] = glob_relays[i].gpio;
+                relay["mode"] = glob_relays[i].mode;
+                relay["state"] = glob_relays[i].state;
+            }
+        }
+        xSemaphoreGive(xMutexRelays);
+    }
+    serializeJson(doc, file);
+    file.close();
+    Serial.println("💾 [FS] Đã lưu cấu hình Relay vào LittleFS.");
+}
+
+// 2. Hàm đọc cấu hình Relay lên RAM lúc khởi động
+void Load_Relay_Config() {
+    if (!LittleFS.exists("/relay_config.json")) return;
+    File file = LittleFS.open("/relay_config.json", "r");
+    if (!file) return;
+
+    StaticJsonDocument<1024> doc;
+    if (deserializeJson(doc, file)) { file.close(); return; }
+    file.close();
+
+    JsonArray array = doc.as<JsonArray>();
+
+    if (xSemaphoreTake(xMutexRelays, portMAX_DELAY) == pdTRUE) {
+        // Làm sạch bộ nhớ tạm
+        for(int i = 0; i < MAX_RELAYS; i++) glob_relays[i].active = false;
+
+        int slot = 0;
+        for (JsonObject relay : array) {
+            if (slot < MAX_RELAYS) {
+                glob_relays[slot].active = true;
+                // Sao chép tên an toàn
+                strlcpy(glob_relays[slot].name, relay["name"] | "Thiết bị", sizeof(glob_relays[slot].name));
+                glob_relays[slot].gpio = relay["gpio"];
+                glob_relays[slot].mode = relay["mode"];
+                glob_relays[slot].state = relay["state"];
+                
+                // Cực kỳ quan trọng: Khôi phục ngay trạng thái phần cứng lúc vừa khởi động
+                pinMode(glob_relays[slot].gpio, OUTPUT);
+                digitalWrite(glob_relays[slot].gpio, glob_relays[slot].state ? HIGH : LOW);
+                
+                slot++;
+            }
+        }
+        xSemaphoreGive(xMutexRelays);
+        Serial.printf("📂 [FS] Đã tải %d Relay từ LittleFS lên RAM.\n", slot);
     }
 }

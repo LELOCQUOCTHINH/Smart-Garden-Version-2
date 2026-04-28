@@ -11,9 +11,14 @@ function onLoad(event) {
 
 function onOpen(event) {
     console.log('Connection opened');
+    // Yêu cầu dữ liệu cấu hình LED
     Send_Data(JSON.stringify({ page: "request_led_config" }));
+    // Yêu cầu dữ liệu cấu hình NeoPixel
     Send_Data(JSON.stringify({ page: "request_neo_config" }));
+    // Yêu cầu dữ liệu cấu hình ngưỡng cảnh báo
     Send_Data(JSON.stringify({ page: "request_threshold_config" }));
+    // Yêu cầu dữ liệu cấu hình Relay
+    Send_Data(JSON.stringify({ page: "request_relay_config" }));
 }
 
 function onClose(event) {
@@ -84,6 +89,23 @@ function onMessage(event) {
 
         if (data.state !== undefined) {
             updateSystemStatus(data.state);
+        }
+
+        if (data.page === "relay_config_data") {
+            // Xóa mảng cũ
+            relayList = []; 
+            // Đổ dữ liệu từ ESP32 vào lại mảng JS
+            data.value.forEach(item => {
+                relayList.push({
+                    id: item.id,
+                    name: item.name,
+                    gpio: item.gpio,
+                    mode: item.mode,
+                    state: item.state
+                });
+            });
+            // Vẽ lại danh sách Relay
+            renderRelays();
         }
     } catch (e) {
         console.warn("Không phải JSON hợp lệ:", event.data);
@@ -159,44 +181,140 @@ function closeAddRelayDialog() {
     document.getElementById('addRelayDialog').style.display = 'none';
 }
 function saveRelay() {
-    const name = document.getElementById('relayName').value.trim();
-    const gpio = document.getElementById('relayGPIO').value.trim();
-    if (!name || !gpio) return alert("⚠️ Please fill all fields!");
-    relayList.push({ id: Date.now(), name, gpio, state: false });
+    const nameInput = document.getElementById('relayName').value;
+    const name = nameInput.trim() !== "" ? nameInput : "Thiết bị mới";
+    const gpio = parseInt(document.getElementById('relayGPIO').value);
+    const mode = parseInt(document.getElementById('relayMode').value);
+
+    if (isNaN(gpio)) {
+        alert("Vui lòng nhập số GPIO hợp lệ!");
+        return;
+    }
+
+    // 1. Cập nhật mảng relayList trên giao diện Web
+    const existing = relayList.find(r => r.gpio === gpio);
+    if (existing) {
+        // Nếu đã có GPIO này rồi thì cập nhật
+        existing.name = name;
+        existing.mode = mode;
+    } else {
+        // Nếu chưa có thì thêm mới
+        relayList.push({
+            id: Date.now(), // Tạo ID ngẫu nhiên trên web để quản lý
+            name: name,
+            gpio: gpio,
+            mode: mode,
+            state: 0
+        });
+    }
+
+    // 2. Gửi lệnh xuống ESP32
+    const payload = {
+        page: "device",
+        action: "update",
+        value: { name: name, gpio: gpio, mode: mode, state: 0 }
+    };
+    Send_Data(JSON.stringify(payload));
+
+    // 3. Vẽ lại danh sách và đóng hộp thoại
     renderRelays();
     closeAddRelayDialog();
+
+    // 4. Reset form cho lần thêm sau
+    document.getElementById('relayName').value = "";
+    document.getElementById('relayGPIO').value = "";
+    document.getElementById('relayMode').value = "0";
 }
+
+// Hàm gửi lệnh Bật/Tắt thủ công (chỉ áp dụng nếu mode == 0)
+function controlRelay(gpio, state) {
+    const payload = {
+        page: "device",
+        action: "update",
+        value: { gpio: gpio, mode: 0, state: state }
+    };
+    Send_Data(JSON.stringify(payload));
+}
+
+function switchMode(id) {
+    const relay = relayList.find(r => r.id === id);
+    if (relay) {
+        // Chuyển đổi qua lại giữa 0 và 1
+        relay.mode = (relay.mode === 1) ? 0 : 1;
+        
+        // Gửi dữ liệu cập nhật xuống ESP32
+        const payload = {
+            page: "device",
+            action: "update",
+            value: {
+                gpio: relay.gpio,
+                mode: relay.mode,
+                state: relay.state // Giữ nguyên trạng thái hiện tại
+            }
+        };
+        
+        Send_Data(JSON.stringify(payload));
+        
+        // Vẽ lại giao diện
+        renderRelays();
+        console.log(`🔄 Đã chuyển GPIO ${relay.gpio} sang chế độ: ${relay.mode === 1 ? 'AI' : 'Manual'}`);
+    }
+}
+
 function renderRelays() {
     const container = document.getElementById('relayContainer');
     container.innerHTML = "";
+    
     relayList.forEach(r => {
         const card = document.createElement('div');
         card.className = 'device-card';
+        
+        // Xác định badge và trạng thái nút bấm dựa trên mode
+        const isAI = (r.mode === 1);
+        const modeText = isAI ? "🤖 AI Control" : "✋ Manual";
+        const modeClass = isAI ? "mode-ai" : "mode-manual";
+        
         card.innerHTML = `
-      <i class="fa-solid fa-bolt device-icon"></i>
-      <h3>${r.name}</h3>
-      <p>GPIO: ${r.gpio}</p>
-      <button class="toggle-btn ${r.state ? 'on' : ''}" onclick="toggleRelay(${r.id})">
-        ${r.state ? 'ON' : 'OFF'}
-      </button>
-      <i class="fa-solid fa-trash delete-icon" onclick="showDeleteDialog(${r.id})"></i>
-    `;
+            <i class="fa-solid fa-bolt device-icon"></i>
+            <div class="device-info">
+                <h3>${r.name}</h3>
+                <p>GPIO: ${r.gpio}</p>
+            </div>
+            
+            <div class="mode-status">
+                <span class="mode-badge ${modeClass}">${modeText}</span>
+                <button class="switch-mode-btn" onclick="switchMode(${r.id})">
+                    <i class="fa-solid fa-arrows-rotate"></i> Đổi chế độ
+                </button>
+            </div>
+
+            <button class="toggle-btn ${r.state ? 'on' : ''}" 
+                onclick="toggleRelay(${r.id})" 
+                ${isAI ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>
+                ${r.state ? 'ON' : 'OFF'}
+            </button>
+
+            <i class="fa-solid fa-trash delete-icon" onclick="showDeleteDialog(${r.id})"></i>
+        `;
         container.appendChild(card);
     });
 }
 function toggleRelay(id) {
     const relay = relayList.find(r => r.id === id);
-    if (relay) {
-        relay.state = !relay.state;
-        const relayJSON = JSON.stringify({
+    if (relay && relay.mode === 0) { // Chỉ cho phép nếu đang ở Manual
+        relay.state = relay.state ? 0 : 1;
+        
+        const payload = {
             page: "device",
+            action: "update",
             value: {
-                name: relay.name,
-                status: relay.state ? "ON" : "OFF",
-                gpio: relay.gpio
+                gpio: relay.gpio,
+                mode: relay.mode,
+                state: relay.state
             }
-        });
-        Send_Data(relayJSON);
+        };
+        
+        Send_Data(JSON.stringify(payload));
         renderRelays();
     }
 }

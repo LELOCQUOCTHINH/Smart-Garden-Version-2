@@ -12,6 +12,7 @@
 #include "led_blinky.h"
 #include "neo_control.h"
 #include "task_monitor.h"
+#include "task_relay_controller.h"
 
 extern float glob_temperature;
 extern float glob_humidity;
@@ -50,4 +51,10 @@ extern SemaphoreHandle_t xMutexNeoStates; // Mutex để bảo vệ
 
 // -----------------------------------------------CRITICAL WARNING----------------------------------------------
 extern SystemContext *my_ctx; // Context chung cho việc monitor và cảnh báo trạng thái hệ thống
+
+//-----------------------------------------------RELAY CONTROLLER config----------------------------------------------
+extern RelayInfo glob_relays[MAX_RELAYS];
+extern QueueHandle_t glob_relayQueue;
+extern SemaphoreHandle_t xMutexRelays;
+
 #endif
