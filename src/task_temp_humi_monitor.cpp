@@ -52,7 +52,15 @@ void task_temp_humi_monitor(void *pvParameters){
         sprintf(tempBuf, "Humi:%.1f%%", humidity);
         sendToOLED(68, 20, tempBuf);
         
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        uint32_t current_sensor_interval = 1000;
+        if (xSemaphoreTake(xMutexIntervals, (TickType_t)10) == pdTRUE) {
+            current_sensor_interval = glob_sensor_interval;
+            xSemaphoreGive(xMutexIntervals);
+        } else {
+            Serial.println("⚠️ ERROR: cannot get Mutex for Intervals, using default sensor interval!");
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(current_sensor_interval));
     }
     
 }

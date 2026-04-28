@@ -28,11 +28,11 @@ extern String LOCAL_SERVER;
 extern boolean isWifiConnected;
 extern SemaphoreHandle_t xBinarySemaphoreInternet;
 
-extern volatile int neo_state;
-extern SemaphoreHandle_t xMutexNeoState;
+// extern volatile int neo_state;
+// extern SemaphoreHandle_t xMutexNeoState;
 
-extern volatile uint16_t blinkingInterval;
-extern SemaphoreHandle_t xMutexBlinkingInterval;
+// extern volatile uint16_t blinkingInterval;
+// extern SemaphoreHandle_t xMutexBlinkingInterval;
 
 extern SemaphoreHandle_t xMutexTempHumi;
 extern SemaphoreHandle_t xMutexSoilMoisture;
@@ -56,5 +56,11 @@ extern SystemContext *my_ctx; // Context chung cho việc monitor và cảnh bá
 extern RelayInfo glob_relays[MAX_RELAYS];
 extern QueueHandle_t glob_relayQueue;
 extern SemaphoreHandle_t xMutexRelays;
+
+//-----------------------------------------------SHARED ATTRIBUTES HANDLER----------------------------------------------
+extern uint32_t glob_telemetry_interval;
+extern uint32_t glob_tinyml_interval;
+extern uint32_t glob_sensor_interval;
+extern SemaphoreHandle_t xMutexIntervals;
 
 #endif

@@ -61,7 +61,7 @@ void Save_info_File(String wifi_ssid, String wifi_pass, String CORE_IOT_TOKEN, S
   }
   else
   {
-    Serial.println('Unable to save the configuration.');
+    Serial.println("Unable to save the configuration.");
   }
   ESP.restart();
 };
@@ -75,10 +75,16 @@ bool check_info_File(bool check)
       Serial.println("❌ Lỗi khởi động LittleFS!");
       return false;
     }
+
+    //load info SSID and password wifi
     Load_info_File();
+    //Load LED blinky inteval of user
     Load_LED_Config();
+    //Load NeoPixel config of user
     Load_Neo_Config();
+    //Load thresholds warning config of user
     Load_Thresholds(my_ctx);
+    //Load relay config of user
     Load_Relay_Config();
   }
   

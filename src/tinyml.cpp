@@ -102,6 +102,15 @@ void tiny_ml_task(void *pvParameters)
         RelayEvent ev = {1, output_AI}; // eventType = 1 (Lệnh AI), truyền kèm state
         xQueueSend(glob_relayQueue, &ev, 0);
 
-        vTaskDelay(5000);
+        uint32_t current_tinyml_interval = 5000;
+        if (xSemaphoreTake(xMutexIntervals, (TickType_t)10) == pdTRUE) {
+            current_tinyml_interval = glob_tinyml_interval;
+            xSemaphoreGive(xMutexIntervals);
+        } else {
+            Serial.println("⚠️ ERROR: cannot get Mutex for Intervals, using default TinyML interval!");
+        }
+
+        // Thay số 5000 bằng biến current_tinyml_interval
+        vTaskDelay(pdMS_TO_TICKS(current_tinyml_interval));
     }
 }

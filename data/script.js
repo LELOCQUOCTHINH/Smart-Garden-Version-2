@@ -326,6 +326,21 @@ function closeConfirmDelete() {
     document.getElementById('confirmDeleteDialog').style.display = 'none';
 }
 function confirmDelete() {
+    // 1. Tìm relay sắp bị xóa trong mảng để lấy đúng số chân GPIO
+    const relay = relayList.find(r => r.id === deleteTarget);
+    
+    if (relay) {
+        // 2. Gửi lệnh báo cho ESP32 biết để xóa trong LittleFS
+        const payload = {
+            page: "device",
+            action: "delete",
+            value: { gpio: relay.gpio } // Backend C++ cần thông số gpio này
+        };
+        Send_Data(JSON.stringify(payload));
+        console.log("Đã gửi lệnh xóa relay ở GPIO:", relay.gpio);
+    }
+
+    // 3. Xóa thẻ khỏi mảng trên Web và vẽ lại giao diện
     relayList = relayList.filter(r => r.id !== deleteTarget);
     renderRelays();
     closeConfirmDelete();

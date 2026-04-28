@@ -45,6 +45,15 @@ void Task_SoilMoisture(void *pvParameters) {
         // Send to OLED at the requested coordinates: x = 0, y = 30 (which is the 4th line, since y starts at 0)
         sendToOLED(0, 30, oledBuffer);
 
-        vTaskDelay(1000 / portTICK_PERIOD_MS); 
+        uint32_t current_sensor_interval = 1000;
+        if (xSemaphoreTake(xMutexIntervals, (TickType_t)10) == pdTRUE) {
+            current_sensor_interval = glob_sensor_interval;
+            xSemaphoreGive(xMutexIntervals);
+        }
+        else {
+            Serial.println("⚠️ ERROR: cannot get Mutex for Intervals, using default sensor interval!");
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(current_sensor_interval)); // Delay for 1 second before the next reading
     }
 }
