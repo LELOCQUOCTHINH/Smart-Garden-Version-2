@@ -79,6 +79,66 @@ void handleWebSocketMessage(String message)
             }
             xSemaphoreGive(xMutexLedStates);
             Serial.println("✅ [WEB] Đã cập nhật cấu hình LED Blinky mới từ Web!");
+
+            Save_LED_Config();
         }
+    }
+
+    else if (doc["page"] == "request_led_config") 
+    {
+        StaticJsonDocument<1024> resDoc;
+        resDoc["page"] = "led_config_data"; // Đánh dấu đây là dữ liệu LED
+        JsonArray array = resDoc.createNestedArray("value");
+        
+        if (xSemaphoreTake(xMutexLedStates, portMAX_DELAY) == pdTRUE) {
+            for (int i = 0; i < numLedStates; i++) {
+                JsonObject state = array.createNestedObject();
+                state["temp"] = ledStates[i].tempThreshold;
+                state["interval"] = ledStates[i].interval;
+            }
+            xSemaphoreGive(xMutexLedStates);
+        }
+        
+        String response;
+        serializeJson(resDoc, response);
+        ws.textAll(response); // Gửi mảng LED hiện tại ngược lại cho giao diện Web
+    }
+
+    else if (doc["page"] == "neo_config")
+    {
+        JsonArray states = doc["value"].as<JsonArray>();
+        if (xSemaphoreTake(xMutexNeoStates, portMAX_DELAY) == pdTRUE) {
+            numNeoStates = 0;
+            for (JsonObject state : states) {
+                if (numNeoStates < MAX_NEO_STATES) {
+                    neoStates[numNeoStates].humiThreshold = state["humi"];
+                    neoStates[numNeoStates].r = state["r"];
+                    neoStates[numNeoStates].g = state["g"];
+                    neoStates[numNeoStates].b = state["b"];
+                    numNeoStates++;
+                }
+            }
+            xSemaphoreGive(xMutexNeoStates);
+            Save_Neo_Config(); // Lưu xuống Flash
+        }
+    }
+    else if (doc["page"] == "request_neo_config") 
+    {
+        StaticJsonDocument<1024> resDoc;
+        resDoc["page"] = "neo_config_data";
+        JsonArray array = resDoc.createNestedArray("value");
+        if (xSemaphoreTake(xMutexNeoStates, portMAX_DELAY) == pdTRUE) {
+            for (int i = 0; i < numNeoStates; i++) {
+                JsonObject state = array.createNestedObject();
+                state["humi"] = neoStates[i].humiThreshold;
+                state["r"] = neoStates[i].r;
+                state["g"] = neoStates[i].g;
+                state["b"] = neoStates[i].b;
+            }
+            xSemaphoreGive(xMutexNeoStates);
+        }
+        String response;
+        serializeJson(resDoc, response);
+        ws.textAll(response);
     }
 }

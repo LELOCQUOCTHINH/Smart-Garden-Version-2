@@ -11,6 +11,8 @@ function onLoad(event) {
 
 function onOpen(event) {
     console.log('Connection opened');
+    Send_Data(JSON.stringify({ page: "request_led_config" }));
+    Send_Data(JSON.stringify({ page: "request_neo_config" }));
 }
 
 function onClose(event) {
@@ -49,6 +51,16 @@ function onMessage(event) {
         }
         if (data.soil_moisture !== undefined && gaugeSoil) {
             gaugeSoil.refresh(data.soil_moisture);
+        }
+
+        if (data.page === "led_config_data") {
+            currentLedStates = data.value; // Nạp dữ liệu từ FS của ESP32 vào mảng JS
+            renderLedTable();              // Cập nhật lại giao diện bảng HTML
+        }
+
+        if (data.page === "neo_config_data") {
+            currentNeoStates = data.value;
+            renderNeoTable();
         }
     } catch (e) {
         console.warn("Không phải JSON hợp lệ:", event.data);
@@ -207,11 +219,7 @@ document.getElementById("settingsForm").addEventListener("submit", function (e) 
 });
 
 // Mảng lưu trữ trạng thái tạm thời trên giao diện
-let currentLedStates = [
-    { temp: 25, interval: 2000 },
-    { temp: 33, interval: 500 },
-    { temp: 999, interval: 100 }
-];
+let currentLedStates = [];
 
 function renderLedTable() {
     const tbody = document.getElementById("ledTableBody");
@@ -262,4 +270,71 @@ function saveLedConfig() {
     Send_Data(configJSON);
     alert("Đã gửi cấu hình LED xuống thiết bị!");
     renderLedTable(); // Render lại để hiển thị mảng đã được sắp xếp
+}
+
+let currentNeoStates = [];
+// Hàm hỗ trợ chuyển đổi từ RGB sang dạng Hex (#RRGGBB) cho input color
+function rgbToHex(r, g, b) {
+    return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+}
+
+// Hàm hỗ trợ chuyển đổi từ Hex (#RRGGBB) sang RGB cho ESP32
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 };
+}
+
+function renderNeoTable() {
+    const tbody = document.getElementById("neoTableBody");
+    tbody.innerHTML = "";
+    
+    currentNeoStates.forEach((state, index) => {
+        const hexColor = rgbToHex(state.r, state.g, state.b);
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><input type="number" id="neoHumi_${index}" value="${state.humi}"></td>
+            <td>
+                <input type="color" id="neoColor_${index}" value="${hexColor}" style="width: 50px; height: 35px; cursor: pointer; border: none;">
+            </td>
+            <td><button class="btn-delete" onclick="removeNeoRow(${index})"><i class="fa-solid fa-trash"></i></button></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function addNeoRow() {
+    if (currentNeoStates.length >= 10) return;
+    // Default màu Trắng
+    currentNeoStates.push({ humi: 50, r: 255, g: 255, b: 255 }); 
+    renderNeoTable();
+}
+
+function removeNeoRow(index) {
+    currentNeoStates.splice(index, 1);
+    renderNeoTable();
+}
+
+function saveNeoConfig() {
+    currentNeoStates.forEach((state, index) => {
+        state.humi = parseFloat(document.getElementById(`neoHumi_${index}`).value);
+        const hex = document.getElementById(`neoColor_${index}`).value;
+        const rgb = hexToRgb(hex); // JS tính toán RGB để nhẹ gánh cho ESP32
+        state.r = rgb.r;
+        state.g = rgb.g;
+        state.b = rgb.b;
+    });
+
+    // Sắp xếp tăng dần theo độ ẩm
+    currentNeoStates.sort((a, b) => a.humi - b.humi);
+
+    Send_Data(JSON.stringify({
+        page: "neo_config",
+        value: currentNeoStates
+    }));
+    alert("Đã gửi cấu hình NeoPixel!");
+    renderNeoTable();
 }

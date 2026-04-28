@@ -76,6 +76,8 @@ bool check_info_File(bool check)
       return false;
     }
     Load_info_File();
+    Load_LED_Config();
+    Load_Neo_Config();
   }
   
   if (WIFI_SSID.isEmpty() && WIFI_PASS.isEmpty())
@@ -147,5 +149,54 @@ void Load_LED_Config() {
         }
         xSemaphoreGive(xMutexLedStates);
         Serial.println("📂 Đã tải cấu hình LED từ LittleFS lên RAM.");
+    }
+}
+
+// 1. Lưu Neo config
+void Save_Neo_Config() {
+    File file = LittleFS.open("/neo_config.json", "w");
+    if (!file) return;
+    StaticJsonDocument<1024> doc;
+    JsonArray array = doc.to<JsonArray>();
+    
+    if (xSemaphoreTake(xMutexNeoStates, portMAX_DELAY) == pdTRUE) {
+        for (int i = 0; i < numNeoStates; i++) {
+            JsonObject state = array.createNestedObject();
+            state["humi"] = neoStates[i].humiThreshold;
+            state["r"] = neoStates[i].r;
+            state["g"] = neoStates[i].g;
+            state["b"] = neoStates[i].b;
+        }
+        xSemaphoreGive(xMutexNeoStates);
+    }
+    serializeJson(doc, file);
+    file.close();
+    Serial.println("💾 [FS] Đã lưu cấu hình NeoPixel.");
+}
+
+// 2. Tải Neo config lên RAM
+void Load_Neo_Config() {
+    if (!LittleFS.exists("/neo_config.json")) return;
+    File file = LittleFS.open("/neo_config.json", "r");
+    if (!file) return;
+
+    StaticJsonDocument<1024> doc;
+    if (deserializeJson(doc, file)) return;
+    file.close();
+
+    JsonArray array = doc.as<JsonArray>();
+    if (xSemaphoreTake(xMutexNeoStates, portMAX_DELAY) == pdTRUE) {
+        numNeoStates = 0; 
+        for (JsonObject state : array) {
+            if (numNeoStates < MAX_NEO_STATES) {
+                neoStates[numNeoStates].humiThreshold = state["humi"];
+                neoStates[numNeoStates].r = state["r"];
+                neoStates[numNeoStates].g = state["g"];
+                neoStates[numNeoStates].b = state["b"];
+                numNeoStates++;
+            }
+        }
+        xSemaphoreGive(xMutexNeoStates);
+        Serial.printf("📂 [FS] Đã tải %d trạng thái NeoPixel.\n", numNeoStates);
     }
 }

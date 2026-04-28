@@ -31,17 +31,21 @@ void neo_control_RPC(void *pvParameters){
         // ------------------------------------------------
         uint32_t color = strip.Color(0, 0, 0); // Default Off
 
-        if (local_humidity < 40.0) {
-            // Level 1: Dry Environment (< 40%) -> Red Color
-            color = strip.Color(255, 0, 0);
-        } 
-        else if (local_humidity >= 40.0 && local_humidity <= 70.0) {
-            // Level 2: Optimal/Comfortable (40% - 70%) -> Green Color
-            color = strip.Color(0, 255, 0);
-        } 
-        else {
-            // Level 3: Highly Humid (> 70%) -> Blue Color
-            color = strip.Color(0, 0, 255);
+        if (xSemaphoreTake(xMutexNeoStates, (TickType_t)10) == pdTRUE) {
+            if (numNeoStates > 0) {
+                bool found = false;
+                for (int i = 0; i < numNeoStates; i++) {
+                    if (local_humidity < neoStates[i].humiThreshold) {
+                        color = strip.Color(neoStates[i].r, neoStates[i].g, neoStates[i].b);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    color = strip.Color(neoStates[numNeoStates-1].r, neoStates[numNeoStates-1].g, neoStates[numNeoStates-1].b);
+                }
+            }
+            xSemaphoreGive(xMutexNeoStates);
         }
 
         // ------------------------------------------------

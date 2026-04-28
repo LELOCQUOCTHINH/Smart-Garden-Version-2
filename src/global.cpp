@@ -26,6 +26,7 @@ SemaphoreHandle_t xMutexBlinkingInterval = xSemaphoreCreateMutex(); // Mutex đ�
 SemaphoreHandle_t xMutexTempHumi = xSemaphoreCreateMutex(); // Mutex để bảo vệ truy cập vào glob_temperature và glob_humidity
 SemaphoreHandle_t xMutexSoilMoisture = xSemaphoreCreateMutex(); // Mutex để bảo vệ truy cập vào glob_soil_moisture
 
+//----------------------------------------------led blinky config----------------------------------------------
 LedState ledStates[MAX_LED_STATES] = {
     {25.0, 2000},
     {33.0, 500},
@@ -34,3 +35,13 @@ LedState ledStates[MAX_LED_STATES] = {
 int numLedStates = 3;
 
 SemaphoreHandle_t xMutexLedStates = xSemaphoreCreateMutex();
+
+//----------------------------------------------NeoPixel control config---------------------------------------------
+NeoState neoStates[MAX_NEO_STATES] = {
+    {40.0, 255, 0, 0},    // < 40%: Đỏ
+    {70.0, 0, 255, 0},    // < 70%: Xanh lá
+    {999.0, 0, 0, 255}    // Khác: Xanh dương
+};
+int numNeoStates = 3;
+
+SemaphoreHandle_t xMutexNeoStates = xSemaphoreCreateMutex();

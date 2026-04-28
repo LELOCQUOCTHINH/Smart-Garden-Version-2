@@ -11,5 +11,9 @@ bool check_info_File(bool check);
 void Load_info_File();
 void Delete_info_File();
 void Save_info_File(String WIFI_SSID, String WIFI_PASS, String CORE_IOT_TOKEN, String CORE_IOT_SERVER, String CORE_IOT_PORT, String LOCAL_SERVER);
+void Save_LED_Config();
+void Load_LED_Config();
+void Save_Neo_Config();
+void Load_Neo_Config();
 
 #endif
