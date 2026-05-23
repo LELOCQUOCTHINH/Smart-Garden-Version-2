@@ -9,8 +9,8 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "task_oled.h"
-#include "led_blinky.h"
-#include "neo_control.h"
+#include "task_led_blinky.h"
+#include "task_neo_control.h"
 #include "task_monitor.h"
 #include "task_relay_controller.h"
 
